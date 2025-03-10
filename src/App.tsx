@@ -824,16 +824,16 @@ function App() {
 
 			// Skip unchecked optional products
 			const productNameCell = cells[1] as HTMLElement;
-			const checkbox = productNameCell.querySelector(
+			const checkbox = productNameCell?.querySelector(
 				".product-checkbox",
 			) as HTMLInputElement;
 			if (checkbox && !checkbox.checked) {
 				return;
 			}
 
-			const quantity = parseFloat(cells[2].textContent || "0");
-			const discount = parseFloat(cells[3].textContent || "0");
-			const price = parseFloat((cells[4].textContent || "0").replace("$", ""));
+			const quantity = parseFloat(cells[2]?.textContent || "0");
+			const discount = parseFloat(cells[3]?.textContent || "0");
+			const price = parseFloat((cells[4]?.textContent || "0").replace("$", ""));
 
 			if (!isNaN(quantity) && !isNaN(price)) {
 				// Apply discount if available
@@ -1118,7 +1118,9 @@ function App() {
 				</div>
 			</div>
 		`;
-		editor.insertContent(tableHtml);
+
+		// Insert the quote table with a paragraph after it
+		editor.insertContent(tableHtml + "<p>&nbsp;</p>");
 
 		// Find the newly inserted quote table
 		const quoteTables = editor.dom.select(".quote-block");
@@ -1126,6 +1128,12 @@ function App() {
 
 		// Setup the newly inserted quote table
 		setupQuoteTable(editor, newQuoteTable);
+
+		// Move cursor to the paragraph after the quote table
+		const paragraphAfter = editor.dom.getNext(newQuoteTable, "p");
+		if (paragraphAfter) {
+			editor.selection.setCursorLocation(paragraphAfter, 0);
+		}
 	};
 
 	// Setup a quote table with event handlers and functionality
@@ -1162,7 +1170,7 @@ function App() {
 					return;
 				}
 
-				const descriptionContainer = titleSection.querySelector(
+				const descriptionContainer = titleSection?.querySelector(
 					".quote-description-container",
 				) as HTMLElement;
 				if (!descriptionContainer) {
@@ -1201,17 +1209,17 @@ function App() {
 				positionDropdown(dropdown, e.clientX, e.clientY);
 
 				// Add click outside listener to close dropdown
-				const closeDropdown = (event: MouseEvent) => {
-					if (!dropdown.contains(event.target as Node)) {
-						document.body.removeChild(dropdown);
-						document.removeEventListener("click", closeDropdown);
-					}
-				};
+				// const closeDropdown = (event: MouseEvent) => {
+				// 	if (!dropdown.contains(event.target as Node)) {
+				// 		document?.body?.removeChild(dropdown);
+				// 		document.removeEventListener("click", closeDropdown);
+				// 	}
+				// };
 
 				// Delay adding the event listener to prevent immediate closing
-				setTimeout(() => {
-					document.addEventListener("click", closeDropdown);
-				}, 100);
+				// setTimeout(() => {
+				// 	document.addEventListener("click", closeDropdown);
+				// }, 100);
 			});
 		}
 
@@ -1725,7 +1733,7 @@ function App() {
 
 				// Remove checkboxes if they exist
 				const productNameCell = row.children[1] as HTMLElement;
-				const checkbox = productNameCell.querySelector(".product-checkbox");
+				const checkbox = productNameCell?.querySelector(".product-checkbox");
 				if (checkbox) {
 					checkbox.remove();
 				}
@@ -1755,7 +1763,7 @@ function App() {
 
 				// Remove checkboxes if they exist
 				const productNameCell = row.children[1] as HTMLElement;
-				const checkbox = productNameCell.querySelector(".product-checkbox");
+				const checkbox = productNameCell?.querySelector(".product-checkbox");
 				if (checkbox) {
 					checkbox.remove();
 				}
@@ -2259,16 +2267,21 @@ function App() {
 
 		// Create the HTML for the signature block
 		const signatureBlockHtml = `
-			<div id="${signatureBlockId}" class="signature-block" style="margin: 20px auto; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; width: 30%;">
+			<div id="${signatureBlockId}" class="signature-block" contenteditable="false" style="margin: 20px auto; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; width: 30%;">
 				<div class="signature-header" style="margin-bottom: 15px; padding-bottom: 10px;">
 					<h3 style="margin: 0; font-size: 16px; color: #333;">Signature Block</h3>
 				</div>
 				
 				<div class="signature-user-selection">
-					<label style="display: block; margin-bottom: 5px; font-weight: 500;">Select Signatory:</label>
+					<div style="display: block; margin-bottom: 5px; font-weight: 500;">Select Signee(s)</div>
 					<div class="user-select-wrapper" style="position: relative;">
-						<input type="text" class="user-search-input" placeholder="Search or select user..." style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" data-signature-id="${signatureBlockId}">
-						<div class="user-dropdown" style="display: none; position: absolute; width: 100%; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 4px 4px; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+						<div class="user-select-display" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" data-signature-id="${signatureBlockId}">
+							<span class="selected-user-name">Select a user...</span>
+							<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+							</svg>
+						</div>
+						<div class="user-dropdown" style="display: none; position: absolute; width: 100%; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; border-radius: 0 0 4px 4px; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
 							${mockUsers
 								.map(
 									(user) => `
@@ -2285,12 +2298,23 @@ function App() {
 			</div>
 		`;
 
-		// Insert the signature block at the current cursor position
-		editor.insertContent(signatureBlockHtml);
+		// Insert the signature block at the current cursor position with a paragraph after it
+		editor.insertContent(signatureBlockHtml + "<p>&nbsp;</p>");
+
+		// Find the newly inserted signature block
+		const signatureBlock = editor.dom.get(signatureBlockId);
 
 		// Setup event handlers for the signature block
 		setTimeout(() => {
 			setupSignatureBlock(editor, signatureBlockId);
+
+			// Move cursor to the paragraph after the signature block
+			if (signatureBlock) {
+				const paragraphAfter = editor.dom.getNext(signatureBlock, "p");
+				if (paragraphAfter) {
+					editor.selection.setCursorLocation(paragraphAfter, 0);
+				}
+			}
 		}, 100);
 	};
 
@@ -2302,42 +2326,37 @@ function App() {
 		const signatureBlock = editor.dom.get(signatureBlockId);
 		if (!signatureBlock) return;
 
-		const searchInput = editor.dom.select(
-			`input[data-signature-id="${signatureBlockId}"]`,
+		// Prevent any editing of the signature block
+		signatureBlock.addEventListener("click", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+			// Return focus to editor
+			editor.focus();
+		});
+
+		const selectDisplay = editor.dom.select(
+			`.user-select-display[data-signature-id="${signatureBlockId}"]`,
 			signatureBlock,
-		)[0] as HTMLInputElement;
+		)[0] as HTMLElement;
+		const selectedUserName = editor.dom.select(
+			".selected-user-name",
+			selectDisplay,
+		)[0];
 		const dropdown = editor.dom.select(".user-dropdown", signatureBlock)[0];
 		const userOptions = editor.dom.select(".user-option", signatureBlock);
 
-		if (searchInput && dropdown) {
-			// Show dropdown when input is focused
-			searchInput.addEventListener("focus", () => {
-				dropdown.style.display = "block";
-			});
+		if (selectDisplay && dropdown) {
+			// Toggle dropdown when display is clicked
+			selectDisplay.addEventListener("mousedown", (e) => {
+				e.preventDefault(); // Prevent default to avoid losing focus
+				e.stopPropagation(); // Stop propagation to prevent editor handling
 
-			// Filter users when typing in the search input
-			searchInput.addEventListener("input", (e) => {
-				const target = e.target as HTMLInputElement;
-				const searchTerm = target.value.toLowerCase();
-
-				userOptions.forEach((option: HTMLElement) => {
-					const userName =
-						option.querySelector("div")?.textContent?.toLowerCase() || "";
-					const userEmail =
-						option
-							.querySelector("div:nth-child(2)")
-							?.textContent?.toLowerCase() || "";
-
-					if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
-						option.style.display = "block";
-					} else {
-						option.style.display = "none";
-					}
-				});
+				const isVisible = dropdown.style.display === "block";
+				dropdown.style.display = isVisible ? "none" : "block";
 			});
 
 			// Handle clicking outside to close dropdown
-			editor.getDoc().addEventListener("click", (e) => {
+			editor.getDoc().addEventListener("mousedown", (e) => {
 				const target = e.target as HTMLElement;
 				if (!target.closest(`#${signatureBlockId} .user-select-wrapper`)) {
 					dropdown.style.display = "none";
@@ -2347,13 +2366,16 @@ function App() {
 
 		// Setup click handlers for user options
 		userOptions.forEach((option: HTMLElement) => {
-			option.addEventListener("click", () => {
+			option.addEventListener("mousedown", (e) => {
+				e.preventDefault(); // Prevent default to avoid losing focus
+				e.stopPropagation(); // Stop propagation to prevent editor handling
+
 				const userId = option.getAttribute("data-user-id");
 				const selectedUser = mockUsers.find((user) => user.id === userId);
 
-				if (selectedUser && searchInput) {
-					// Update the input field with the selected user's name
-					searchInput.value = selectedUser.name;
+				if (selectedUser && selectedUserName) {
+					// Update the display with the selected user's name
+					selectedUserName.textContent = selectedUser.name;
 
 					// Hide the dropdown
 					dropdown.style.display = "none";
@@ -2429,10 +2451,6 @@ function App() {
 				`,
 					)
 					.join("")}
-				<div class="theme-option custom-color-option" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center; border-top: 1px solid #eee;">
-					<div style="width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(45deg, #f44336, #2196F3, #4CAF50); margin-right: 8px; border: 1px solid #ddd;"></div>
-					<span>Custom Color</span>
-				</div>
 			</div>
 			`,
 		);
@@ -2476,56 +2494,6 @@ function App() {
 				}
 			});
 		});
-
-		// Handle custom color option
-		const customColorOption = editor.dom.select(
-			".custom-color-option",
-			themeSelector,
-		)[0];
-		if (customColorOption) {
-			customColorOption.addEventListener("click", () => {
-				// Create a color picker input
-				const input = document.createElement("input");
-				input.type = "color";
-				input.value = "#1976d2"; // Default blue theme color
-
-				// When color is selected, apply it to the quote table
-				input.addEventListener("input", (e) => {
-					const color = (e.target as HTMLInputElement).value;
-
-					// Apply the color to the quote table header
-					const quoteHeader = editor.dom.select(
-						".quote-header",
-						quoteTable,
-					)[0] as HTMLElement;
-					if (quoteHeader) {
-						quoteHeader.style.backgroundColor = color;
-					}
-
-					// Apply the color to buttons and other accent elements
-					const buttons = editor.dom.select("button", quoteTable);
-					buttons.forEach((button) => {
-						if (button.classList.contains("add-product-btn")) {
-							button.style.backgroundColor = color;
-						} else {
-							button.style.borderColor = color;
-						}
-					});
-
-					// Store the custom color on the quote table
-					quoteTable.setAttribute("data-custom-color", color);
-
-					// Notify TinyMCE of the change
-					editor.fire("Change");
-				});
-
-				// Trigger the color picker
-				input.click();
-
-				// Hide the dropdown
-				themeDropdown.style.display = "none";
-			});
-		}
 	};
 
 	// Function to create a product dropdown
@@ -2951,6 +2919,8 @@ function App() {
 							border-radius: 8px;
 							background-color: #f9f9f9;
 							width: 30%;
+							user-select: none;
+							cursor: default;
 						}
 						
 						.signature-header {
@@ -2968,18 +2938,22 @@ function App() {
 							margin-bottom: 0;
 						}
 						
-						.user-search-input {
+						.user-select-display {
 							width: 100%;
 							padding: 8px 12px;
 							border: 1px solid #ddd;
 							border-radius: 4px;
 							box-sizing: border-box;
+							cursor: pointer;
+							display: flex;
+							justify-content: space-between;
+							align-items: center;
+							background-color: white;
 						}
 						
-						.user-search-input:focus {
+						.user-select-display:hover {
 							border-color: #2196F3;
-							outline: none;
-							box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+							background-color: #f9f9f9;
 						}
 						
 						.user-dropdown {
@@ -2990,10 +2964,10 @@ function App() {
 							overflow-y: auto;
 							background: white;
 							border: 1px solid #ddd;
-							border-top: none;
 							border-radius: 0 0 4px 4px;
 							z-index: 1000;
 							box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+							user-select: none;
 						}
 						
 						.user-option {
