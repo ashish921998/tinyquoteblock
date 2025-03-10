@@ -1,19 +1,18 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-	build: {
-		rollupOptions: {
-			external: ["tinymce"],
-		},
-	},
+	plugins: [react()],
 	server: {
-		fs: {
-			// Allow serving files from node_modules
-			allow: [".."],
-		},
+		port: 3000,
+	},
+	build: {
+		outDir: "dist",
+		assetsDir: "assets",
+		sourcemap: true,
+	},
+	optimizeDeps: {
+		include: ["react", "react-dom"],
 	},
 });

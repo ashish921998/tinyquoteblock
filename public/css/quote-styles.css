@@ -1,0 +1,203 @@
+/* Quote Table Styles */
+.quote-table {
+	border-radius: 8px !important;
+	padding: 0px 16px;
+}
+
+.quote-header {
+	background: #f8f9fa;
+	padding: 0 !important;
+	border-top-left-radius: 8px !important;
+	border-top-right-radius: 8px !important;
+	display: grid;
+	grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr;
+	gap: 12px;
+}
+
+.quote-header > div {
+	padding: 12px 16px !important;
+}
+
+.quote-row {
+	padding: 0 !important;
+	border-bottom: 1px solid #eee;
+	display: grid;
+	grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr;
+	gap: 12px;
+	position: relative;
+}
+
+.quote-row > div {
+	padding: 12px 16px !important;
+}
+
+.quote-row:hover .row-actions {
+	display: block !important;
+}
+
+.empty-row {
+	transition: background-color 0.2s ease;
+}
+
+.empty-row:hover {
+	background-color: #f9f9f9;
+}
+
+.empty-row .add-product-btn {
+	transition: background-color 0.2s ease;
+}
+
+.empty-row:hover .add-product-btn {
+	background-color: #45a049 !important;
+}
+
+.three-dots-btn:hover {
+	background-color: #e0e0e0 !important;
+}
+
+.dropdown-item:hover {
+	background-color: #f5f5f5;
+}
+
+.row-actions .dropdown-menu.show {
+	display: block !important;
+}
+
+.quote-title-section {
+	padding: 16px;
+	border-bottom: 1px solid #eee;
+}
+
+.quote-body {
+	padding: 0 !important;
+}
+
+.quote-summary {
+	padding: 16px;
+	border-top: 1px solid #eee;
+}
+
+/* Button hover effects */
+.add-product-btn:hover {
+	background-color: #45a049;
+}
+
+.edit-row-btn:hover {
+	background-color: #f5f5f5;
+}
+
+.delete-row-btn:hover {
+	background-color: #f5f5f5;
+}
+
+.delete-table-btn:hover {
+	background-color: #d32f2f;
+}
+
+.column-visibility-btn:hover {
+	background-color: #7b1fa2;
+}
+
+.quote-row:hover {
+	background-color: #f5f5f5;
+}
+
+/* Placeholder styles */
+.quote-title-editable:empty:before,
+.quote-description-editable:empty:before {
+	content: attr(data-placeholder);
+	color: #aaa;
+}
+
+.quote-title-editable[data-placeholder-visible]:before,
+.quote-description-editable[data-placeholder-visible]:before {
+	content: attr(data-placeholder);
+	color: #aaa;
+}
+
+/* Drag handle styles */
+.drag-handle {
+	cursor: grab;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.drag-handle:hover {
+	background-color: rgba(0, 0, 0, 0.05);
+	border-radius: 4px;
+}
+
+/* Product selection indicators */
+.product-mandatory::before {
+	content: "*";
+	position: absolute;
+	left: -10px;
+	color: #f44336;
+	font-weight: bold;
+}
+
+.product-optional::before {
+	content: "○";
+	position: absolute;
+	left: -10px;
+	color: #2196f3;
+	font-weight: bold;
+}
+
+.product-exclusive::before {
+	content: "◉";
+	position: absolute;
+	left: -10px;
+	color: #ff9800;
+	font-weight: bold;
+}
+
+/* Editable Cell Styles */
+.editable-cell {
+	cursor: pointer;
+	transition: background-color 0.2s;
+	padding: 8px;
+	border-radius: 4px;
+	position: relative;
+}
+
+.editable-cell:hover {
+	background-color: #f5f5f5;
+}
+
+.editable-cell:hover::after {
+	content: "✎";
+	position: absolute;
+	right: 8px;
+	color: #999;
+	font-size: 12px;
+}
+
+.editable-cell:focus {
+	outline: 2px solid #2196f3;
+	background-color: #e3f2fd;
+	box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+/* Specific cell styles */
+.quantity-cell {
+	font-weight: bold;
+	text-align: center;
+}
+
+.price-cell {
+	color: #2e7d32 !important;
+	text-align: right;
+}
+
+.discount-cell {
+	color: #d32f2f !important;
+	text-align: center;
+}
+
+.amount-cell {
+	font-weight: bold;
+	color: #1976d2 !important;
+	text-align: right;
+}

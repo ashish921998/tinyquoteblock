@@ -8,6 +8,7 @@ interface ProductFormData {
 	description: string;
 	quantity: string;
 	price: string;
+	discount: string;
 	rowId?: string;
 }
 
@@ -30,9 +31,10 @@ interface MockProduct {
 
 interface ColumnVisibility {
 	productName: boolean;
-	description: boolean;
 	quantity: boolean;
+	discount: boolean;
 	price: boolean;
+	amount: boolean;
 }
 
 // Define product selection types
@@ -114,6 +116,120 @@ const SAMPLE_PRODUCTS: MockProduct[] = [
 	},
 ];
 
+// Mock user data for signature block
+interface User {
+	id: string;
+	name: string;
+	email: string;
+	role: string;
+}
+
+// Theme options for quote tables
+interface QuoteTableTheme {
+	id: string;
+	name: string;
+	headerBg: string;
+	headerText: string;
+	rowBg: string;
+	rowAltBg: string; // Alternate row background
+	rowText: string;
+	borderColor: string;
+	accentColor: string;
+}
+
+// Available themes for quote tables
+const quoteTableThemes: QuoteTableTheme[] = [
+	{
+		id: "default",
+		name: "Default",
+		headerBg: "#fff",
+		headerText: "#333333",
+		rowBg: "#ffffff",
+		rowAltBg: "#ffffff",
+		rowText: "#333333",
+		borderColor: "#eeeeee",
+		accentColor: "#2196F3",
+	},
+	{
+		id: "dark",
+		name: "Dark",
+		headerBg: "#343a40",
+		headerText: "#ffffff",
+		rowBg: "#212529",
+		rowAltBg: "#2c3034",
+		rowText: "#ffffff",
+		borderColor: "#495057",
+		accentColor: "#17a2b8",
+	},
+	{
+		id: "blue",
+		name: "Blue",
+		headerBg: "#1976d2",
+		headerText: "#ffffff",
+		rowBg: "#f5f9ff",
+		rowAltBg: "#e3f2fd",
+		rowText: "#333333",
+		borderColor: "#bbdefb",
+		accentColor: "#2196F3",
+	},
+	{
+		id: "green",
+		name: "Green",
+		headerBg: "#2e7d32",
+		headerText: "#ffffff",
+		rowBg: "#f1f8e9",
+		rowAltBg: "#dcedc8",
+		rowText: "#333333",
+		borderColor: "#c5e1a5",
+		accentColor: "#4caf50",
+	},
+	{
+		id: "elegant",
+		name: "Elegant",
+		headerBg: "#37474f",
+		headerText: "#ffffff",
+		rowBg: "#ffffff",
+		rowAltBg: "#f5f5f5",
+		rowText: "#333333",
+		borderColor: "#cfd8dc",
+		accentColor: "#607d8b",
+	},
+];
+
+// Mock list of users
+const mockUsers: User[] = [
+	{
+		id: "user1",
+		name: "John Doe",
+		email: "john.doe@example.com",
+		role: "Sales Manager",
+	},
+	{
+		id: "user2",
+		name: "Jane Smith",
+		email: "jane.smith@example.com",
+		role: "Account Executive",
+	},
+	{
+		id: "user3",
+		name: "Michael Johnson",
+		email: "michael.johnson@example.com",
+		role: "Sales Representative",
+	},
+	{
+		id: "user4",
+		name: "Emily Davis",
+		email: "emily.davis@example.com",
+		role: "Customer Success Manager",
+	},
+	{
+		id: "user5",
+		name: "Robert Wilson",
+		email: "robert.wilson@example.com",
+		role: "CEO",
+	},
+];
+
 function ProductListDrawer({
 	isOpen,
 	onClose,
@@ -152,6 +268,7 @@ function ProductListDrawer({
 			description: p.description,
 			quantity: "1",
 			price: p.price,
+			discount: "0",
 		}));
 		onImport(productsToImport);
 		onClose();
@@ -262,7 +379,7 @@ function ProductListDrawer({
 							display: "grid",
 							gridTemplateColumns: "auto 2fr 1fr 1fr 1fr",
 							padding: "12px",
-							background: "#f8f9fa",
+							background: "#fff",
 							borderBottom: "2px solid #eee",
 							position: "sticky",
 							top: 0,
@@ -403,8 +520,9 @@ function ProductDrawer({
 		editData || {
 			productName: "",
 			description: "",
-			quantity: "",
+			quantity: "1",
 			price: "",
+			discount: "0",
 		},
 	);
 
@@ -418,8 +536,21 @@ function ProductDrawer({
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		onSubmit(formData);
-		setFormData({ productName: "", description: "", quantity: "", price: "" });
+		setFormData({
+			productName: "",
+			description: "",
+			quantity: "1",
+			price: "",
+			discount: "0",
+		});
 		onClose();
+	};
+
+	const handleChange = (
+		e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+	) => {
+		const { name, value } = e.target;
+		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
 	if (!isOpen) return null;
@@ -475,18 +606,18 @@ function ProductDrawer({
 				</div>
 				<form onSubmit={handleSubmit}>
 					<div style={{ marginBottom: "16px" }}>
-						<label style={{ display: "block", marginBottom: "8px" }}>
+						<label
+							htmlFor="productName"
+							style={{ display: "block", marginBottom: "8px" }}
+						>
 							Product Name
 						</label>
 						<input
 							type="text"
+							id="productName"
+							name="productName"
 							value={formData.productName}
-							onChange={(e) =>
-								setFormData((prev) => ({
-									...prev,
-									productName: e.target.value,
-								}))
-							}
+							onChange={handleChange}
 							style={{
 								width: "100%",
 								padding: "8px",
@@ -497,63 +628,88 @@ function ProductDrawer({
 						/>
 					</div>
 					<div style={{ marginBottom: "16px" }}>
-						<label style={{ display: "block", marginBottom: "8px" }}>
+						<label
+							htmlFor="description"
+							style={{ display: "block", marginBottom: "8px" }}
+						>
 							Description
 						</label>
 						<textarea
+							id="description"
+							name="description"
 							value={formData.description}
-							onChange={(e) =>
-								setFormData((prev) => ({
-									...prev,
-									description: e.target.value,
-								}))
-							}
+							onChange={handleChange}
 							style={{
 								width: "100%",
 								padding: "8px",
 								border: "1px solid #ddd",
 								borderRadius: "4px",
-								minHeight: "100px",
+								minHeight: "80px",
 							}}
 						/>
 					</div>
 					<div style={{ marginBottom: "16px" }}>
-						<label style={{ display: "block", marginBottom: "8px" }}>
+						<label
+							htmlFor="quantity"
+							style={{ display: "block", marginBottom: "8px" }}
+						>
 							Quantity
 						</label>
 						<input
-							type="number"
+							type="text"
+							id="quantity"
+							name="quantity"
 							value={formData.quantity}
-							onChange={(e) =>
-								setFormData((prev) => ({ ...prev, quantity: e.target.value }))
-							}
+							onChange={handleChange}
 							style={{
 								width: "100%",
 								padding: "8px",
 								border: "1px solid #ddd",
 								borderRadius: "4px",
+								minHeight: "80px",
 							}}
-							required
 						/>
 					</div>
-					<div style={{ marginBottom: "24px" }}>
-						<label style={{ display: "block", marginBottom: "8px" }}>
+					<div style={{ marginBottom: "16px" }}>
+						<label
+							htmlFor="price"
+							style={{ display: "block", marginBottom: "8px" }}
+						>
 							Price
 						</label>
 						<input
-							type="number"
-							step="0.01"
+							type="text"
+							id="price"
+							name="price"
 							value={formData.price}
-							onChange={(e) =>
-								setFormData((prev) => ({ ...prev, price: e.target.value }))
-							}
+							onChange={handleChange}
 							style={{
 								width: "100%",
 								padding: "8px",
 								border: "1px solid #ddd",
 								borderRadius: "4px",
 							}}
-							required
+						/>
+					</div>
+					<div style={{ marginBottom: "16px" }}>
+						<label
+							htmlFor="discount"
+							style={{ display: "block", marginBottom: "8px" }}
+						>
+							Discount (%)
+						</label>
+						<input
+							type="text"
+							id="discount"
+							name="discount"
+							value={formData.discount}
+							onChange={handleChange}
+							style={{
+								width: "100%",
+								padding: "8px",
+								border: "1px solid #ddd",
+								borderRadius: "4px",
+							}}
 						/>
 					</div>
 					<div
@@ -594,148 +750,64 @@ function ProductDrawer({
 
 function App() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+	const [editingProduct, setEditingProduct] = useState<ProductFormData>();
 	const [isProductListOpen, setIsProductListOpen] = useState(false);
 	const [currentEditor, setCurrentEditor] = useState<TinyMCEEditor | null>(
 		null,
 	);
-	const [editingProduct, setEditingProduct] = useState<
-		ProductFormData | undefined
-	>();
-	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
-		productName: true,
-		description: true,
-		quantity: true,
-		price: true,
-	});
-	const [taxRate, setTaxRate] = useState<number>(10); // Default tax rate of 10%
-	const [productSelectionType, setProductSelectionType] =
+	const [productSelectionType] =
 		useState<ProductSelectionType>("all-mandatory");
+	const [taxRate, setTaxRate] = useState<number>(10); // Default tax rate of 10%
 
 	const updateTableColumns = (
 		editor: TinyMCEEditor,
 		visibility: ColumnVisibility,
 	) => {
-		// Create grid template based on visible columns
-		let gridTemplate = "30px"; // Start with drag handle column
-		if (visibility.productName) gridTemplate += " 3fr"; // Increased to 3fr since it includes description
-		if (visibility.quantity) gridTemplate += " 1fr";
-		if (visibility.price) gridTemplate += " 1fr";
-		gridTemplate += " 80px"; // Actions column
+		// Calculate the grid template based on visible columns
+		let gridTemplate = "30px"; // Always show the drag handle column
 
-		// Update header
-		const header = editor.dom.select(".quote-header")[0] as HTMLElement;
-		if (header) {
-			header.style.gridTemplateColumns = gridTemplate;
-
-			// Show/hide header cells
-			const cells = Array.from(header.children) as HTMLElement[];
-			let cellIndex = 1; // Start at 1 to skip the empty drag handle cell
-
-			if (visibility.productName) {
-				cells[cellIndex].style.display = "block";
-				cells[cellIndex].textContent = "Product Name"; // Update header text
-				cellIndex++;
-			} else {
-				cells[cellIndex].style.display = "none";
-				cellIndex++;
-			}
-
-			// Skip description header cell
-			cells[cellIndex].style.display = "none";
-			cellIndex++;
-
-			if (visibility.quantity) {
-				cells[cellIndex].style.display = "block";
-				cellIndex++;
-			} else {
-				cells[cellIndex].style.display = "none";
-				cellIndex++;
-			}
-
-			if (visibility.price) {
-				cells[cellIndex].style.display = "block";
-				cellIndex++;
-			} else {
-				cells[cellIndex].style.display = "none";
-				cellIndex++;
-			}
+		if (visibility.productName) {
+			gridTemplate += " 3fr";
 		}
 
-		// Update all rows
-		const rows = editor.dom.select(".quote-row") as HTMLElement[];
-		rows.forEach((row) => {
-			row.style.gridTemplateColumns = gridTemplate;
+		if (visibility.quantity) {
+			gridTemplate += " 1fr";
+		}
 
-			// Show/hide row cells
-			const cells = Array.from(row.children) as HTMLElement[];
-			let cellIndex = 1; // Start at 1 to skip the drag handle
+		if (visibility.discount) {
+			gridTemplate += " 1fr";
+		}
 
-			if (visibility.productName) {
-				const productCell = cells[cellIndex];
-				const descriptionCell = cells[cellIndex + 1];
+		if (visibility.price) {
+			gridTemplate += " 1fr";
+		}
 
-				// Get the description text
-				const descriptionText = descriptionCell.textContent || "";
+		if (visibility.amount) {
+			gridTemplate += " 1fr";
+		}
 
-				// Update product cell to include description
-				const productContent = productCell.innerHTML;
-				const hasCheckbox = productCell.querySelector(".product-checkbox");
+		console.log("Grid template:", gridTemplate);
 
-				if (hasCheckbox) {
-					const checkbox = hasCheckbox.outerHTML;
-					const productText = productContent.replace(checkbox, "").trim();
-					productCell.innerHTML = `
-						${checkbox}
-						<div style="display: flex; flex-direction: column;">
-							<div style="font-weight: 500;">${productText}</div>
-							${
-								descriptionText
-									? `<div style="color: #666; font-size: 0.9em; margin-top: 4px;">${descriptionText}</div>`
-									: ""
-							}
-						</div>
-					`;
-				} else {
-					productCell.innerHTML = `
-						<div style="display: flex; flex-direction: column;">
-							<div style="font-weight: 500;">${productContent}</div>
-							${
-								descriptionText
-									? `<div style="color: #666; font-size: 0.9em; margin-top: 4px;">${descriptionText}</div>`
-									: ""
-							}
-						</div>
-					`;
-				}
-
-				productCell.style.display = "block";
-				descriptionCell.style.display = "none";
-				cellIndex += 2; // Skip both product and description cells
-			} else {
-				cells[cellIndex].style.display = "none";
-				cells[cellIndex + 1].style.display = "none";
-				cellIndex += 2;
+		// Find all quote tables in the editor
+		const quoteTables = editor.dom.select(".quote-block");
+		quoteTables.forEach((quoteTable) => {
+			// Update the header
+			const header = editor.dom.select(".quote-header", quoteTable)[0];
+			if (header) {
+				header.style.gridTemplateColumns = gridTemplate;
 			}
 
-			if (visibility.quantity) {
-				cells[cellIndex].style.display = "block";
-				cellIndex++;
-			} else {
-				cells[cellIndex].style.display = "none";
-				cellIndex++;
+			// Update all rows in this table
+			const quoteBody = editor.dom.select(".quote-body", quoteTable)[0];
+			if (quoteBody) {
+				const rows = editor.dom.select(".quote-row", quoteBody);
+				console.log(
+					`Updating ${rows.length} rows with grid template: ${gridTemplate}`,
+				);
+				rows.forEach((row) => {
+					row.style.gridTemplateColumns = gridTemplate;
+				});
 			}
-
-			if (visibility.price) {
-				cells[cellIndex].style.display = "block";
-				cellIndex++;
-			} else {
-				cells[cellIndex].style.display = "none";
-				cellIndex++;
-			}
-
-			// Always show the drag handle and actions column
-			cells[0].style.display = "block"; // drag handle
-			cells[cells.length - 1].style.display = "block"; // actions
 		});
 	};
 
@@ -759,11 +831,15 @@ function App() {
 				return;
 			}
 
-			const quantity = parseFloat(cells[3].textContent || "0");
+			const quantity = parseFloat(cells[2].textContent || "0");
+			const discount = parseFloat(cells[3].textContent || "0");
 			const price = parseFloat((cells[4].textContent || "0").replace("$", ""));
 
 			if (!isNaN(quantity) && !isNaN(price)) {
-				subtotal += quantity * price;
+				// Apply discount if available
+				const discountAmount = !isNaN(discount) ? (price * discount) / 100 : 0;
+				const discountedPrice = price - discountAmount;
+				subtotal += quantity * discountedPrice;
 			}
 		});
 
@@ -909,39 +985,107 @@ function App() {
 		}
 
 		const tableHtml = `
-			<div class="quote-block" contenteditable="false" style="user-select: none;" draggable="false" data-product-selection="${productSelectionType}">
-				<div class="quote-table" style="width: 100%; margin: 15px 0; background: white; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+			<div class="quote-block" contenteditable="false" style="user-select: none; width: 681px;" draggable="false" data-product-selection="${productSelectionType}">
+				<div class="quote-table" style="background: linear-gradient(rgb(207, 231, 253), rgb(255, 255, 255) 95px);">
 					<div class="quote-title-section" style="padding: 16px; border-bottom: 1px solid #eee;">
-						<div style="display: flex; align-items: center; margin-bottom: 8px;">
-							<div style="font-weight: 600; color: #333; font-size: 18px; margin-right: 8px;">Quote:</div>
-							<div 
-								class="quote-title-editable" 
-								contenteditable="true" 
-								style="flex: 1; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; min-height: 24px; font-size: 18px;"
-								data-placeholder="Enter quote title..."
-							></div>
-						</div>
-						<div style="display: flex; align-items: flex-start;">
-							<div style="font-weight: 600; color: #333; margin-right: 8px; padding-top: 4px;">Description:</div>
-							<div 
-								class="quote-description-editable" 
-								contenteditable="true" 
-								style="flex: 1; padding: 4px 8px; border: 1px solid #ddd; border-radius: 4px; min-height: 24px;"
-								data-placeholder="Enter quote description..."
-							></div>
+						<div>
+							<div style="display: flex; align-items: center; margin-bottom: 8px;">
+								<div 
+									class="quote-title-editable" 
+									contenteditable="true" 
+									style="flex: 0.7; color: black; outline: none; padding: 4px 8px; border-bottom: 1px dashed #ddd; min-height: 24px; font-size: 14px;"
+									data-placeholder="Enter Section Name"
+								></div>
+								<div class="antd-dropdown-container" style="margin-left: 8px; position: relative;">
+								
+									<div class="antd-dropdown-menu" style="display: none; position: absolute; top: 100%; left: 0; background-color: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 1050; min-width: 220px; margin-top: 4px; left: 0;">
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide Price</span>
+											<button class="toggle-btn" data-option="price" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
+												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
+											</button>
+										</div>
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide Quantity</span>
+											<button class="toggle-btn" data-option="quantity" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
+												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
+											</button>
+										</div>
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide Discount</span>
+											<button class="toggle-btn" data-option="discount" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
+												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
+											</button>
+										</div>
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide Amount</span>
+											<button class="toggle-btn" data-option="amount" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
+												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
+											</button>
+										</div>
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide Tax</span>
+											<button class="toggle-btn" data-option="tax" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
+												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
+											</button>
+										</div>
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide Product Description</span>
+											<button class="toggle-btn" data-option="description" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
+												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
+											</button>
+										</div>
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide Product Images</span>
+											<button class="toggle-btn" data-option="images" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
+												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
+											</button>
+										</div>
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Set Thumbnail Size</span>
+										</div>
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Allow Editing Quantity</span>
+											<button class="toggle-btn" data-option="editQuantity" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
+												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
+											</button>
+										</div>
+										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
+											<span>Set Quantity Limitations</span>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="quote-description-container" style="display: none; margin-top: 8px; width: 100%;">
+								<div 
+									class="quote-description-editable" 
+									contenteditable="true" 
+									style="outline: none; padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-height: 24px; width: 100%; background: #fff; font-size: 14px; color: #333;"
+									data-placeholder="Enter description"
+								></div>
+							</div>
 						</div>
 					</div>
-					<div class="quote-header" style="background: #f8f9fa; padding: 12px; border-bottom: 2px solid #eee; display: grid; grid-template-columns: 30px 3fr 1fr 1fr 80px; gap: 12px;">
+					<div class="quote-header" style="background: #fff; padding: 12px; 1px solid #eee; display: grid; grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr; gap: 12px;">
 						<div></div>
 						<div style="font-weight: 600; color: #333;">Product Name</div>
 						<div style="font-weight: 600; color: #333; text-align: center;">Quantity</div>
+						<div style="font-weight: 600; color: #333; text-align: center;">Discount (%)</div>
 						<div style="font-weight: 600; color: #333; text-align: right;">Price</div>
-						<div style="font-weight: 600; color: #333; text-align: center;">Actions</div>
+						<div style="font-weight: 600; color: #333; text-align: right;">Amount</div>
 					</div>
-					<div id="quote-body" class="quote-body" style="padding: 0 12px;">
+					<div id="quote-body" class="quote-body" style="padding: 0 12px; background: #fff;">
 						<!-- Rows will be inserted here -->
+						<div class="quote-row empty-row" style="display: grid; grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr; gap: 12px; padding: 12px; border-bottom: 1px solid #eee; position: relative; cursor: pointer; min-height: 50px; align-items: center; justify-content: center;" draggable="false">
+							<div style="grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; gap: 8px;">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M12 5V19M5 12H19" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+								<span style="color: #4CAF50; font-weight: 500;">Click to Add Product</span>
+							</div>
+						</div>
 					</div>
-					<div class="quote-summary" style="padding: 16px; border-top: 1px solid #eee;">
+					<div class="quote-summary" style="padding: 16px; border-top: 1px solid #eee; background: #fff;">
 						<div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
 							<div style="width: 120px; font-weight: 600; color: #333; text-align: right;">Subtotal:</div>
 							<div style="width: 120px; color: #333; text-align: right; margin-left: 16px;">$0.00</div>
@@ -966,38 +1110,6 @@ function App() {
 							<button type="button" class="import-products-btn" style="background-color: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
 								Import Products
 							</button>
-							<div class="column-visibility-dropdown" style="position: relative; display: inline-block;">
-								<button type="button" class="column-visibility-btn" style="background-color: #9C27B0; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
-									Show/Hide Columns
-								</button>
-								<div class="column-dropdown-content" style="display: none; position: absolute; background-color: white; min-width: 200px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 4px; padding: 8px; margin-top: 4px; left: 0;">
-									<label style="display: block; padding: 8px; cursor: pointer;">
-										<input type="checkbox" class="column-checkbox" data-column="productName" checked style="margin-right: 8px;"> Product Name
-									</label>
-									<label style="display: block; padding: 8px; cursor: pointer;">
-										<input type="checkbox" class="column-checkbox" data-column="quantity" checked style="margin-right: 8px;"> Quantity
-									</label>
-									<label style="display: block; padding: 8px; cursor: pointer;">
-										<input type="checkbox" class="column-checkbox" data-column="price" checked style="margin-right: 8px;"> Price
-									</label>
-								</div>
-							</div>
-							<div class="product-selection-dropdown" style="position: relative; display: inline-block;">
-								<button type="button" class="product-selection-btn" style="padding: 8px 16px; border: 1px solid #FF9800; background-color: #FFF8E1; border-radius: 4px; cursor: pointer; font-size: 14px; color: #E65100;">
-									Product Selection: <span class="product-selection-text">All Products Mandatory</span>
-								</button>
-								<div class="product-dropdown-content" style="display: none; position: absolute; background-color: white; min-width: 200px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 4px; padding: 8px; margin-top: 4px; left: 0;">
-									<label style="display: block; padding: 8px; cursor: pointer;">
-										<input type="radio" name="product-selection" class="product-selection-radio" value="all-mandatory" checked style="margin-right: 8px;"> All Products Mandatory
-									</label>
-									<label style="display: block; padding: 8px; cursor: pointer;">
-										<input type="radio" name="product-selection" class="product-selection-radio" value="all-optional" style="margin-right: 8px;"> All Products Optional
-									</label>
-									<label style="display: block; padding: 8px; cursor: pointer;">
-										<input type="radio" name="product-selection" class="product-selection-radio" value="only-one" style="margin-right: 8px;"> Only One Product
-									</label>
-								</div>
-							</div>
 						</div>
 						<button type="button" class="delete-table-btn" style="background-color: #f44336; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
 							Delete Quote Table
@@ -1016,48 +1128,17 @@ function App() {
 		setupQuoteTable(editor, newQuoteTable);
 	};
 
-	// Separate function to set up a quote table's functionality
+	// Setup a quote table with event handlers and functionality
 	const setupQuoteTable = (editor: TinyMCEEditor, quoteTable: HTMLElement) => {
-		// Get elements within this specific quote table
-		const importBtn = editor.dom.select(".import-products-btn", quoteTable)[0];
-		const addBtn = editor.dom.select(".add-product-btn", quoteTable)[0];
-		const deleteTableBtn = editor.dom.select(
-			".delete-table-btn",
-			quoteTable,
-		)[0];
-		const columnVisibilityBtn = editor.dom.select(
-			".column-visibility-btn",
-			quoteTable,
-		)[0];
-		const columnDropdown = editor.dom.select(
-			".column-dropdown-content",
-			quoteTable,
-		)[0];
-		const columnCheckboxes = editor.dom.select(".column-checkbox", quoteTable);
-		const productSelectionBtn = editor.dom.select(
-			".product-selection-btn",
-			quoteTable,
-		)[0];
-		const productDropdown = editor.dom.select(
-			".product-dropdown-content",
-			quoteTable,
-		)[0];
-		const productSelectionRadios = editor.dom.select(
-			".product-selection-radio",
-			quoteTable,
-		);
-		const titleEditable = editor.dom.select(
-			".quote-title-editable",
-			quoteTable,
-		)[0] as HTMLElement;
-		const descriptionEditable = editor.dom.select(
-			".quote-description-editable",
-			quoteTable,
-		)[0] as HTMLElement;
+		// Find the quote body
 		const quoteBody = editor.dom.select(
 			".quote-body",
 			quoteTable,
 		)[0] as HTMLElement;
+		if (!quoteBody) {
+			console.error("Quote body not found!");
+			return;
+		}
 
 		// Setup drag and drop for this quote table
 		setupDragAndDrop(editor, quoteBody);
@@ -1065,203 +1146,339 @@ function App() {
 		// Calculate and update the summary
 		updateQuoteSummary(editor, quoteTable);
 
-		// Setup product selection dropdown
-		if (productSelectionBtn && productDropdown) {
-			// Make sure dropdown is initially hidden
-			productDropdown.style.display = "none";
-
-			// Get the current selection from the quote table data attribute
-			const currentSelection =
-				quoteTable.getAttribute("data-product-selection") ||
-				productSelectionType;
-
-			// Set the correct radio button as checked
-			Array.from(productSelectionRadios).forEach((radio) => {
-				const inputRadio = radio as HTMLInputElement;
-				if (inputRadio.value === currentSelection) {
-					inputRadio.checked = true;
+		// Setup Description Toggle button
+		const descriptionToggleBtn = editor.dom.select(
+			".description-toggle-btn",
+			quoteTable,
+		)[0];
+		if (descriptionToggleBtn) {
+			descriptionToggleBtn.addEventListener("click", () => {
+				const titleSection = editor.dom.select(
+					".quote-title-section",
+					quoteTable,
+				)[0];
+				if (!titleSection) {
+					console.error("Title section not found");
+					return;
 				}
-			});
 
-			// Update the button text
-			const selectionTextElement = editor.dom.select(
-				".product-selection-text",
-				quoteTable,
-			)[0];
-			if (selectionTextElement) {
-				if (currentSelection === "all-mandatory") {
-					selectionTextElement.textContent = "All Products Mandatory";
-				} else if (currentSelection === "all-optional") {
-					selectionTextElement.textContent = "All Products Optional";
-				} else if (currentSelection === "only-one") {
-					selectionTextElement.textContent = "Only One Product";
+				const descriptionContainer = titleSection.querySelector(
+					".quote-description-container",
+				) as HTMLElement;
+				if (!descriptionContainer) {
+					console.error("Description container not found");
+					return;
 				}
-			}
 
-			// Toggle dropdown on button click
-			productSelectionBtn.onclick = (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				productDropdown.style.display =
-					productDropdown.style.display === "none" ? "block" : "none";
-			};
+				const isVisible = descriptionContainer.style.display !== "none";
+				descriptionContainer.style.display = isVisible ? "none" : "block";
+				descriptionToggleBtn.textContent = isVisible
+					? "Add description"
+					: "Remove description";
 
-			// Handle radio button changes
-			Array.from(productSelectionRadios).forEach((radio) => {
-				const inputRadio = radio as HTMLInputElement;
-				inputRadio.onclick = (e) => {
-					e.stopPropagation();
-
-					// Set this radio as checked
-					inputRadio.checked = true;
-
-					const newSelectionType = inputRadio.value as ProductSelectionType;
-
-					// Update state
-					setProductSelectionType(newSelectionType);
-
-					// Update the data attribute on the quote table
-					quoteTable.setAttribute("data-product-selection", newSelectionType);
-
-					// Update the button text
-					if (selectionTextElement) {
-						if (newSelectionType === "all-mandatory") {
-							selectionTextElement.textContent = "All Products Mandatory";
-						} else if (newSelectionType === "all-optional") {
-							selectionTextElement.textContent = "All Products Optional";
-						} else if (newSelectionType === "only-one") {
-							selectionTextElement.textContent = "Only One Product";
-						}
-					}
-
-					// Add visual indicator based on selection type
-					updateProductSelectionIndicator(editor, quoteTable, newSelectionType);
-
-					// Close the dropdown
-					productDropdown.style.display = "none";
-				};
-			});
-
-			// Close dropdown when clicking outside
-			document.addEventListener("click", (e) => {
-				if (
-					!productSelectionBtn.contains(e.target as Node) &&
-					!productDropdown.contains(e.target as Node)
-				) {
-					productDropdown.style.display = "none";
-				}
+				// Force TinyMCE to update its content
+				editor.fire("Change");
 			});
 		}
 
-		if (importBtn) {
-			importBtn.onclick = (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				setIsProductListOpen(true);
-			};
-		}
-
-		if (addBtn) {
-			addBtn.onclick = (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				setEditingProduct(undefined);
+		// Setup Add Product button
+		const addProductBtn = editor.dom.select(".add-product-btn", quoteTable)[0];
+		if (addProductBtn) {
+			addProductBtn.addEventListener("click", () => {
 				setIsDrawerOpen(true);
-			};
+			});
 		}
 
+		// Setup empty row click handler
+		const emptyRow = editor.dom.select(".empty-row", quoteBody)[0];
+		if (emptyRow) {
+			emptyRow.addEventListener("click", (e) => {
+				// Create and show product dropdown
+				const dropdown = createProductDropdown(editor, quoteTable);
+				document.body.appendChild(dropdown);
+
+				// Position the dropdown near the click
+				positionDropdown(dropdown, e.clientX, e.clientY);
+
+				// Add click outside listener to close dropdown
+				const closeDropdown = (event: MouseEvent) => {
+					if (!dropdown.contains(event.target as Node)) {
+						document.body.removeChild(dropdown);
+						document.removeEventListener("click", closeDropdown);
+					}
+				};
+
+				// Delay adding the event listener to prevent immediate closing
+				setTimeout(() => {
+					document.addEventListener("click", closeDropdown);
+				}, 100);
+			});
+		}
+
+		// Setup Import Products button
+		const importProductsBtn = editor.dom.select(
+			".import-products-btn",
+			quoteTable,
+		)[0];
+		if (importProductsBtn) {
+			importProductsBtn.addEventListener("click", () => {
+				setIsProductListOpen(true);
+			});
+		}
+
+		// Setup Delete Table button
+		const deleteTableBtn = editor.dom.select(
+			".delete-table-btn",
+			quoteTable,
+		)[0];
 		if (deleteTableBtn) {
-			deleteTableBtn.onclick = (e) => {
-				e.preventDefault();
-				e.stopPropagation();
+			deleteTableBtn.addEventListener("click", () => {
 				if (confirm("Are you sure you want to delete this quote table?")) {
 					quoteTable.remove();
 					editor.fire("Change");
 				}
-			};
+			});
 		}
 
-		if (columnVisibilityBtn) {
-			columnVisibilityBtn.onclick = (e) => {
-				e.preventDefault();
+		// Setup Options dropdown
+		const optionsBtn = editor.dom.select(".antd-dropdown-btn", quoteTable)[0];
+		const optionsMenu = editor.dom.select(".antd-dropdown-menu", quoteTable)[0];
+		if (optionsBtn && optionsMenu) {
+			// Toggle dropdown when button is clicked
+			optionsBtn.addEventListener("click", (e) => {
 				e.stopPropagation();
-				columnDropdown.style.display =
-					columnDropdown.style.display === "none" ? "block" : "none";
-			};
+				const isVisible = optionsMenu.style.display === "block";
+				optionsMenu.style.display = isVisible ? "none" : "block";
+			});
 
 			// Close dropdown when clicking outside
-			document.addEventListener("click", (e) => {
-				if (
-					!columnVisibilityBtn.contains(e.target as Node) &&
-					!columnDropdown.contains(e.target as Node)
-				) {
-					columnDropdown.style.display = "none";
+			editor.getDoc().addEventListener("click", (e) => {
+				const target = e.target as HTMLElement;
+				if (!target.closest(".antd-dropdown-container")) {
+					optionsMenu.style.display = "none";
 				}
 			});
-		}
 
-		if (columnCheckboxes.length) {
-			Array.from(columnCheckboxes).forEach((checkbox) => {
-				const inputCheckbox = checkbox as HTMLInputElement;
-				inputCheckbox.onclick = (e) => {
+			// Setup toggle buttons in the dropdown
+			const toggleButtons = editor.dom.select(".toggle-btn", optionsMenu);
+			toggleButtons.forEach((button) => {
+				button.addEventListener("click", (e) => {
 					e.stopPropagation();
-					const column = inputCheckbox.getAttribute(
-						"data-column",
-					) as keyof ColumnVisibility;
-					const newVisibility = {
-						...columnVisibility,
-						[column]: inputCheckbox.checked,
-					};
-					setColumnVisibility(newVisibility);
-					updateTableColumns(editor, newVisibility);
+					button.classList.toggle("active");
+
+					// Apply the active style to the toggle button
+					if (button.classList.contains("active")) {
+						button.style.backgroundColor = "#1890ff";
+						button.style.borderColor = "#1890ff";
+						const toggleCircle = button.querySelector(".toggle-circle");
+						if (toggleCircle) {
+							(toggleCircle as HTMLElement).style.left = "22px";
+						}
+					} else {
+						button.style.backgroundColor = "#e9e9e9";
+						button.style.borderColor = "#d9d9d9";
+						const toggleCircle = button.querySelector(".toggle-circle");
+						if (toggleCircle) {
+							(toggleCircle as HTMLElement).style.left = "2px";
+						}
+					}
+				});
+			});
+		}
+
+		// Setup Column Visibility button
+		const columnVisibilityBtn = editor.dom.select(
+			".column-visibility-btn",
+			quoteTable,
+		)[0];
+		if (columnVisibilityBtn) {
+			columnVisibilityBtn.addEventListener("click", () => {
+				// Create a dropdown menu for column visibility options
+				const dropdown = editor.dom.create(
+					"div",
+					{
+						class: "column-visibility-dropdown",
+						style:
+							"position: absolute; top: 100%; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; min-width: 150px;",
+					},
+					`
+					<div class="column-visibility-option" data-column="productName" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center;">
+						<input type="checkbox" checked style="margin-right: 8px;"> Product Name
+					</div>
+					<div class="column-visibility-option" data-column="quantity" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center;">
+						<input type="checkbox" checked style="margin-right: 8px;"> Quantity
+					</div>
+					<div class="column-visibility-option" data-column="discount" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center;">
+						<input type="checkbox" checked style="margin-right: 8px;"> Discount
+					</div>
+					<div class="column-visibility-option" data-column="price" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center;">
+						<input type="checkbox" checked style="margin-right: 8px;"> Price
+					</div>
+					<div class="column-visibility-option" data-column="amount" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center;">
+						<input type="checkbox" checked style="margin-right: 8px;"> Amount
+					</div>
+				`,
+				);
+
+				// Position the dropdown relative to the button
+				columnVisibilityBtn.style.position = "relative";
+				columnVisibilityBtn.appendChild(dropdown);
+
+				// Setup event handlers for the dropdown options
+				const options = editor.dom.select(
+					".column-visibility-option",
+					dropdown,
+				);
+				options.forEach((option) => {
+					const checkbox = option.querySelector(
+						"input[type=checkbox]",
+					) as HTMLInputElement;
+
+					option.addEventListener("click", () => {
+						checkbox.checked = !checkbox.checked;
+
+						// Update column visibility
+						const visibility: ColumnVisibility = {
+							productName: (
+								editor.dom.select(
+									'.column-visibility-option[data-column="productName"] input',
+									dropdown,
+								)[0] as HTMLInputElement
+							).checked,
+							quantity: (
+								editor.dom.select(
+									'.column-visibility-option[data-column="quantity"] input',
+									dropdown,
+								)[0] as HTMLInputElement
+							).checked,
+							discount: (
+								editor.dom.select(
+									'.column-visibility-option[data-column="discount"] input',
+									dropdown,
+								)[0] as HTMLInputElement
+							).checked,
+							price: (
+								editor.dom.select(
+									'.column-visibility-option[data-column="price"] input',
+									dropdown,
+								)[0] as HTMLInputElement
+							).checked,
+							amount: (
+								editor.dom.select(
+									'.column-visibility-option[data-column="amount"] input',
+									dropdown,
+								)[0] as HTMLInputElement
+							).checked,
+						};
+
+						updateTableColumns(editor, visibility);
+					});
+				});
+
+				// Close dropdown when clicking outside
+				const closeDropdown = (e: MouseEvent) => {
+					const target = e.target as HTMLElement;
+					if (
+						!target.closest(".column-visibility-dropdown") &&
+						!target.closest(".column-visibility-btn")
+					) {
+						dropdown.remove();
+						document.removeEventListener("click", closeDropdown);
+					}
 				};
+
+				// Use setTimeout to avoid immediate triggering
+				setTimeout(() => {
+					document.addEventListener("click", closeDropdown);
+				}, 0);
 			});
 		}
 
-		// Setup editable fields with minimal event handling
-		if (titleEditable) {
-			// Setup placeholder behavior
-			titleEditable.addEventListener("focus", function () {
-				if (!this.textContent?.trim()) {
-					this.removeAttribute("data-placeholder-visible");
-				}
-			});
+		// Setup edit and delete buttons for each row
+		const rows = editor.dom.select(".quote-row", quoteBody);
+		rows.forEach((row) => {
+			const editBtn = editor.dom.select(".edit-row-btn", row)[0];
+			const deleteBtn = editor.dom.select(".delete-row-btn", row)[0];
+			const threeDotsBtn = editor.dom.select(".three-dots-btn", row)[0];
+			const dropdownMenu = editor.dom.select(".dropdown-menu", row)[0];
 
-			titleEditable.addEventListener("blur", function () {
-				if (!this.textContent?.trim()) {
-					this.setAttribute("data-placeholder-visible", "true");
-				}
-			});
+			if (threeDotsBtn && dropdownMenu) {
+				threeDotsBtn.addEventListener("click", (e) => {
+					e.stopPropagation();
 
-			// Initialize placeholder
-			if (!titleEditable.textContent?.trim()) {
-				titleEditable.setAttribute("data-placeholder-visible", "true");
+					// Close all other open dropdowns first
+					editor.dom.select(".dropdown-menu.show").forEach((menu) => {
+						if (menu !== dropdownMenu) {
+							menu.classList.remove("show");
+							menu.style.display = "none";
+						}
+					});
+
+					// Toggle this dropdown
+					const isVisible = dropdownMenu.classList.contains("show");
+					if (isVisible) {
+						dropdownMenu.classList.remove("show");
+						dropdownMenu.style.display = "none";
+					} else {
+						dropdownMenu.classList.add("show");
+						dropdownMenu.style.display = "block";
+					}
+				});
 			}
-		}
 
-		if (descriptionEditable) {
-			// Setup placeholder behavior
-			descriptionEditable.addEventListener("focus", function () {
-				if (!this.textContent?.trim()) {
-					this.removeAttribute("data-placeholder-visible");
-				}
-			});
+			if (editBtn) {
+				editBtn.addEventListener("click", (e) => {
+					e.stopPropagation();
 
-			descriptionEditable.addEventListener("blur", function () {
-				if (!this.textContent?.trim()) {
-					this.setAttribute("data-placeholder-visible", "true");
-				}
-			});
+					// Close dropdown if open
+					if (dropdownMenu) {
+						dropdownMenu.classList.remove("show");
+						dropdownMenu.style.display = "none";
+					}
 
-			// Initialize placeholder
-			if (!descriptionEditable.textContent?.trim()) {
-				descriptionEditable.setAttribute("data-placeholder-visible", "true");
+					// Get the row ID
+					const rowId = editBtn.getAttribute("data-row-id");
+					if (rowId) {
+						handleEditClick(editor, rowId);
+					}
+				});
 			}
-		}
+
+			if (deleteBtn) {
+				deleteBtn.addEventListener("click", (e) => {
+					e.stopPropagation();
+
+					// Close dropdown if open
+					if (dropdownMenu) {
+						dropdownMenu.classList.remove("show");
+						dropdownMenu.style.display = "none";
+					}
+
+					// Get the row ID
+					const rowId = deleteBtn.getAttribute("data-row-id");
+					if (rowId) {
+						handleDeleteClick(editor, rowId);
+					}
+				});
+			}
+		});
+
+		// Setup editable cells
+		const editableCells = editor.dom.select(".editable-cell", quoteTable);
+		setupEditableCells(editor, editableCells);
+
+		// Create and add the theme selector
+		createThemeSelector(editor, quoteTable);
+
+		// Apply the default theme
+		applyThemeToQuoteTable(editor, quoteTable, "default");
 	};
 
 	// Setup drag and drop functionality for a specific quote body
 	const setupDragAndDrop = (editor: TinyMCEEditor, quoteBody: HTMLElement) => {
+		// First, make sure we're working with the DOM in the editor's iframe
+		const editorDoc = editor.getDoc();
+
 		// Create a unique ID for this quote body if it doesn't have one
 		if (!quoteBody.id) {
 			quoteBody.id = `quote-body-${Date.now()}`;
@@ -1273,144 +1490,214 @@ function App() {
 			quoteBlock.setAttribute("draggable", "false");
 		}
 
-		// Add drag handles to all rows if they don't have them
-		const rows = editor.dom.select(".quote-row", quoteBody);
+		// Get all rows in the quote body, excluding the empty row
+		const rows = editor.dom.select(".quote-row:not(.empty-row)", quoteBody);
+
+		// Track the currently dragged row
+		let draggedRow: HTMLElement | null = null;
+
+		// Clean up any existing drag handles first
+		editor.dom.select(".drag-handle", quoteBody).forEach((handle) => {
+			handle.remove();
+		});
+
+		// Add drag handles to all rows (except empty row)
 		rows.forEach((row) => {
 			// Make sure the row itself is not draggable
 			row.setAttribute("draggable", "false");
 
-			// Check if the row already has a drag handle
-			if (!editor.dom.select(".drag-handle", row).length) {
-				// Create a drag handle element
-				const dragHandle = editor.dom.create(
-					"div",
-					{
-						class: "drag-handle",
-						style:
-							"cursor: grab; display: flex; align-items: center; justify-content: center; margin-right: 8px;",
-						draggable: "true",
-					},
-					`
+			// Create a new drag handle element
+			const dragHandle = editor.dom.create(
+				"div",
+				{
+					class: "drag-handle",
+					style:
+						"cursor: grab; display: flex; align-items: center; justify-content: center; margin-right: 8px;",
+					draggable: "true",
+				},
+				`
 					<div style="width: 12px; height: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;">
 						<div style="width: 4px; height: 4px; border-radius: 50%; background: #666;"></div>
 						<div style="width: 4px; height: 4px; border-radius: 50%; background: #666;"></div>
 						<div style="width: 4px; height: 4px; border-radius: 50%; background: #666;"></div>
 					</div>
 				`,
-				);
+			);
 
-				// Insert the drag handle at the beginning of the row
-				row.insertBefore(dragHandle, row.firstChild);
+			// Insert the drag handle at the beginning of the row
+			row.insertBefore(dragHandle, row.firstChild);
+		});
+
+		// Use event delegation for better performance and to avoid issues with event listeners
+		// Add a single mousedown listener to the quote body
+		quoteBody.addEventListener("mousedown", function (e) {
+			const target = e.target as HTMLElement;
+			const dragHandle = target.closest(".drag-handle");
+
+			if (dragHandle) {
+				// Stop propagation to prevent the editor from handling this event
+				e.stopPropagation();
+
+				// Find the row that contains this drag handle
+				const row = dragHandle.closest(".quote-row") as HTMLElement;
+				if (row) {
+					// Set this row as the one being dragged
+					draggedRow = row;
+
+					// Make the drag handle draggable
+					dragHandle.setAttribute("draggable", "true");
+
+					// Add a one-time dragstart listener to the handle
+					dragHandle.addEventListener(
+						"dragstart",
+						function onDragStart(event) {
+							// Remove this listener after it's used
+							dragHandle.removeEventListener("dragstart", onDragStart);
+
+							// Cast the event to DragEvent to access dataTransfer
+							const dragEvent = event as DragEvent;
+
+							// Set the drag effect
+							if (dragEvent.dataTransfer) {
+								dragEvent.dataTransfer.setData("text/plain", "dragging");
+								dragEvent.dataTransfer.effectAllowed = "move";
+							}
+
+							// Add a visual indication that the row is being dragged
+							row.style.opacity = "0.5";
+
+							// Prevent the editor from handling this event
+							dragEvent.stopPropagation();
+						},
+						{ once: true },
+					);
+
+					// Add a one-time dragend listener to the handle
+					dragHandle.addEventListener(
+						"dragend",
+						function onDragEnd() {
+							// Reset the dragged row's appearance
+							if (draggedRow) {
+								draggedRow.style.opacity = "1";
+							}
+
+							// Clear the dragged row reference
+							draggedRow = null;
+
+							// Remove all drop indicators
+							editor.dom
+								.select(".drop-indicator", quoteBody)
+								.forEach((el) => el.remove());
+						},
+						{ once: true },
+					);
+				}
 			}
 		});
 
-		// Setup drag event listeners
-		rows.forEach((row) => {
-			const dragHandle = editor.dom.select(".drag-handle", row)[0];
-			if (dragHandle) {
-				// Make the drag handle draggable
-				dragHandle.setAttribute("draggable", "true");
+		// Add dragover listener to the quote body for drop indicators
+		quoteBody.addEventListener("dragover", function (e) {
+			// Only proceed if we have a row being dragged
+			if (!draggedRow) return;
 
-				// Add event listeners
-				dragHandle.addEventListener("mousedown", (e) => {
-					// Stop propagation to prevent the editor from handling this event
-					e.stopPropagation();
+			e.preventDefault();
+
+			// Find the row being dragged over
+			const target = e.target as HTMLElement;
+			const rowBeingDraggedOver = target.closest(".quote-row") as HTMLElement;
+
+			// Only proceed if we're dragging over a different row
+			if (rowBeingDraggedOver && rowBeingDraggedOver !== draggedRow) {
+				// Determine if we should show the indicator above or below the row
+				const rect = rowBeingDraggedOver.getBoundingClientRect();
+				const relativeY = e.clientY - rect.top;
+				const insertBefore = relativeY < rect.height / 2;
+
+				// Remove any existing drop indicators
+				editor.dom
+					.select(".drop-indicator", quoteBody)
+					.forEach((el) => el.remove());
+
+				// Create a drop indicator
+				const indicator = editor.dom.create("div", {
+					class: "drop-indicator",
+					style: `position: absolute; height: 3px; background-color: #2196F3; width: 100%; left: 0; ${
+						insertBefore ? "top: 0;" : "bottom: 0;"
+					} z-index: 1000;`,
 				});
 
-				dragHandle.addEventListener("dragstart", (e) => {
-					// Stop propagation to prevent parent elements from being dragged
-					e.stopPropagation();
+				// Position the indicator
+				rowBeingDraggedOver.style.position = "relative";
+				rowBeingDraggedOver.appendChild(indicator);
+			}
+		});
 
-					const target = e.target as HTMLElement;
-					const rowElement = target.closest(".quote-row") as HTMLElement;
-					if (rowElement) {
-						e.dataTransfer?.setData(
-							"text/plain",
-							rowElement.getAttribute("data-row-id") || "",
-						);
-						rowElement.style.opacity = "0.5";
+		// Add drop listener to the quote body
+		quoteBody.addEventListener("drop", function (e) {
+			// Only proceed if we have a row being dragged
+			if (!draggedRow) return;
+
+			e.preventDefault();
+			e.stopPropagation();
+
+			// Find the row being dropped onto
+			const target = e.target as HTMLElement;
+			const rowBeingDroppedOn = target.closest(".quote-row") as HTMLElement;
+
+			// Only proceed if we're dropping onto a different row
+			if (rowBeingDroppedOn && rowBeingDroppedOn !== draggedRow) {
+				// Determine if we should insert before or after the target row
+				const rect = rowBeingDroppedOn.getBoundingClientRect();
+				const relativeY = e.clientY - rect.top;
+
+				if (relativeY < rect.height / 2) {
+					// Insert before
+					quoteBody.insertBefore(draggedRow, rowBeingDroppedOn);
+				} else {
+					// Insert after
+					if (rowBeingDroppedOn.nextSibling) {
+						quoteBody.insertBefore(draggedRow, rowBeingDroppedOn.nextSibling);
+					} else {
+						quoteBody.appendChild(draggedRow);
 					}
-				});
+				}
 
-				dragHandle.addEventListener("dragend", (e) => {
-					e.stopPropagation();
-					const target = e.target as HTMLElement;
-					const rowElement = target.closest(".quote-row") as HTMLElement;
-					if (rowElement) {
-						rowElement.style.opacity = "1";
-					}
-				});
+				// Reset the dragged row's appearance
+				draggedRow.style.opacity = "1";
+
+				// Notify TinyMCE of the change
+				editor.fire("Change");
+
+				// Update the quote summary
+				const quoteTable = quoteBody.closest(".quote-block") as HTMLElement;
+				if (quoteTable) {
+					updateQuoteSummary(editor, quoteTable);
+				}
 			}
 
-			// Make the row a drop target
-			row.addEventListener("dragover", (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				const target = e.target as HTMLElement;
-				const rowElement = target.closest(".quote-row") as HTMLElement;
-				if (rowElement) {
-					// Add a visual indicator for the drop position
-					const rect = rowElement.getBoundingClientRect();
-					const relativeY = e.clientY - rect.top;
+			// Clear the dragged row reference
+			draggedRow = null;
 
-					// Remove any existing drop indicators
-					editor.dom.select(".drop-indicator").forEach((el) => el.remove());
+			// Remove all drop indicators
+			editor.dom
+				.select(".drop-indicator", quoteBody)
+				.forEach((el) => el.remove());
+		});
 
-					// Create a drop indicator
-					const indicator = editor.dom.create("div", {
-						class: "drop-indicator",
-						style: `position: absolute; height: 2px; background-color: #2196F3; width: 100%; left: 0; ${
-							relativeY < rect.height / 2 ? "top: 0;" : "bottom: 0;"
-						}`,
-					});
+		// Add dragend listener to the document to clean up if the drag is cancelled
+		editorDoc.addEventListener("dragend", function () {
+			// Reset any dragged row's appearance
+			if (draggedRow) {
+				draggedRow.style.opacity = "1";
+			}
 
-					rowElement.style.position = "relative";
-					rowElement.appendChild(indicator);
-				}
-			});
+			// Clear the dragged row reference
+			draggedRow = null;
 
-			row.addEventListener("dragleave", (e) => {
-				e.stopPropagation();
-				// Remove drop indicators
-				editor.dom.select(".drop-indicator").forEach((el) => el.remove());
-			});
-
-			row.addEventListener("drop", (e) => {
-				e.preventDefault();
-				e.stopPropagation();
-				const draggedId = e.dataTransfer?.getData("text/plain");
-				const target = e.target as HTMLElement;
-				const rowElement = target.closest(".quote-row") as HTMLElement;
-
-				if (draggedId && rowElement) {
-					const draggedRow = editor.dom.select(
-						`[data-row-id="${draggedId}"]`,
-					)[0];
-					if (draggedRow && draggedRow !== rowElement) {
-						// Determine if we should insert before or after the target row
-						const rect = rowElement.getBoundingClientRect();
-						const relativeY = e.clientY - rect.top;
-
-						if (relativeY < rect.height / 2) {
-							// Insert before
-							quoteBody.insertBefore(draggedRow, rowElement);
-						} else {
-							// Insert after
-							if (rowElement.nextSibling) {
-								quoteBody.insertBefore(draggedRow, rowElement.nextSibling);
-							} else {
-								quoteBody.appendChild(draggedRow);
-							}
-						}
-
-						// Notify TinyMCE of the change
-						editor.fire("Change");
-					}
-				}
-
-				// Remove drop indicators
-				editor.dom.select(".drop-indicator").forEach((el) => el.remove());
-			});
+			// Remove all drop indicators
+			editor.dom
+				.select(".drop-indicator", quoteBody)
+				.forEach((el) => el.remove());
 		});
 	};
 
@@ -1501,6 +1788,12 @@ function App() {
 
 		const quoteBody = currentEditor.dom.select(".quote-body")[0];
 		if (quoteBody) {
+			// Hide the empty row when adding a product
+			const emptyRow = currentEditor.dom.select(".empty-row", quoteBody)[0];
+			if (emptyRow) {
+				emptyRow.style.display = "none";
+			}
+
 			const quoteTable = quoteBody.closest(".quote-block") as HTMLElement;
 			const selectionType =
 				quoteTable?.getAttribute("data-product-selection") ||
@@ -1524,8 +1817,16 @@ function App() {
 					? `<input type="checkbox" class="product-checkbox" checked style="margin-right: 8px; width: 16px; height: 16px; cursor: pointer;" />`
 					: "";
 
+			// Log the data being added
+			console.log("Adding product with data:", data);
+
+			// Calculate amount (price * quantity)
+			const price = parseFloat(data.price) || 0;
+			const quantity = parseFloat(data.quantity) || 0;
+			const amount = price * quantity;
+
 			const rowHtml = `
-				<div class="quote-row ${rowClass}" data-row-id="${rowId}" style="display: grid; grid-template-columns: 30px 3fr 1fr 1fr 80px; gap: 12px; padding: 12px; border-bottom: 1px solid #eee;" draggable="false">
+				<div class="quote-row ${rowClass}" data-row-id="${rowId}" style="display: grid; grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr; gap: 12px; padding: 12px; border-bottom: 1px solid #eee; position: relative;" draggable="false">
 					<div class="drag-handle" style="cursor: grab; display: flex; align-items: center; justify-content: center; margin-right: 8px;" draggable="true">
 						<div style="width: 12px; height: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;">
 							<div style="width: 4px; height: 4px; border-radius: 50%; background: #666;"></div>
@@ -1548,15 +1849,48 @@ function App() {
 							}
 						</div>
 					</div>
-					<div style="color: #333; text-align: center;">${currentEditor.dom.encode(
+					<div class="editable-cell quantity-cell" style="color: #333; text-align: center;" contenteditable="true" data-original-value="${currentEditor.dom.encode(
 						data.quantity,
-					)}</div>
-					<div style="color: #333; text-align: right;">$${currentEditor.dom.encode(
+					)}" data-field="quantity">${currentEditor.dom.encode(
+				data.quantity,
+			)}</div>
+					<div class="editable-cell discount-cell" style="color: #333; text-align: center;" contenteditable="true" data-original-value="${currentEditor.dom.encode(
+						data.discount,
+					)}" data-field="discount">${currentEditor.dom.encode(
+				data.discount,
+			)}%</div>
+					<div class="editable-cell price-cell" style="color: #333; text-align: right;" contenteditable="true" data-original-value="${currentEditor.dom.encode(
 						data.price,
+					)}" data-field="price">$${currentEditor.dom.encode(data.price)}</div>
+					<div class="amount-cell" style="color: #333; text-align: right;">$${amount.toFixed(
+						2,
 					)}</div>
-					<div style="display: flex; gap: 4px; justify-content: center;">
-						<button class="edit-row-btn" style="padding: 4px 8px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;" data-row-id="${rowId}">Edit</button>
-						<button class="delete-row-btn" style="padding: 4px 8px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;" data-row-id="${rowId}">Delete</button>
+					<div class="row-actions" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: none;">
+						<button class="three-dots-btn" style="width: 30px; height: 30px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;" data-row-id="${rowId}">
+							<div style="width: 18px; height: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px;">
+								<div style="width: 4px; height: 4px; border-radius: 50%; background: #333;"></div>
+								<div style="width: 4px; height: 4px; border-radius: 50%; background: #333;"></div>
+								<div style="width: 4px; height: 4px; border-radius: 50%; background: #333;"></div>
+							</div>
+						</button>
+						<div class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #eee; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; min-width: 120px;">
+							<div class="dropdown-item edit-row-btn" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-row-id="${rowId}">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M16.4745 5.40768L18.5917 7.52483M17.8358 3.54106L11.6002 9.77661C11.3242 10.0526 11.1382 10.4001 11.0621 10.7785L10.5 14L13.7215 13.4379C14.0999 13.3618 14.4474 13.1758 14.7234 12.8998L20.9589 6.66421C21.2821 6.34106 21.4637 5.91017 21.4637 5.46106C21.4637 5.01195 21.2821 4.58106 20.9589 4.25791L19.7419 3.04106C19.4188 2.71791 18.9879 2.5363 18.5388 2.5363C18.0897 2.5363 17.6588 2.71791 17.3356 3.04106L17.8358 3.54106Z" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+									<path d="M19 15V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18V7C4 6.46957 4.21071 5.96086 4.58579 5.58579C4.96086 5.21071 5.46957 5 6 5H9" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+								<span>Edit</span>
+							</div>
+							<div class="dropdown-item delete-row-btn" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-row-id="${rowId}">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M3 6H5H21" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+									<path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+									<path d="M10 11V17" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+									<path d="M14 11V17" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+								<span>Delete</span>
+							</div>
+						</div>
 					</div>
 				</div>
 			`;
@@ -1592,8 +1926,146 @@ function App() {
 			setupDragAndDrop(currentEditor, quoteBody);
 
 			// Update the quote summary
-			if (quoteTable) {
-				updateQuoteSummary(currentEditor, quoteTable);
+			updateQuoteSummary(currentEditor, quoteTable);
+
+			// Add click handlers for the new row's buttons
+			const newRow = currentEditor.dom.select(
+				`[data-row-id="${rowId}"]`,
+				quoteBody,
+			)[0];
+			if (newRow) {
+				const threeDotsBtn = currentEditor.dom.select(
+					".three-dots-btn",
+					newRow,
+				)[0];
+				const dropdownMenu = currentEditor.dom.select(
+					".dropdown-menu",
+					newRow,
+				)[0];
+				const editBtn = currentEditor.dom.select(".edit-row-btn", newRow)[0];
+				const deleteBtn = currentEditor.dom.select(
+					".delete-row-btn",
+					newRow,
+				)[0];
+
+				if (threeDotsBtn) {
+					threeDotsBtn.onclick = (e) => {
+						e.preventDefault();
+						e.stopPropagation();
+
+						// Toggle dropdown menu
+						if (dropdownMenu) {
+							const isVisible = dropdownMenu.classList.contains("show");
+
+							// Close all other open dropdowns first
+							const allDropdowns = currentEditor.dom.select(
+								".dropdown-menu.show",
+							);
+							allDropdowns.forEach((dropdown) => {
+								dropdown.classList.remove("show");
+								dropdown.style.display = "none";
+							});
+
+							if (!isVisible) {
+								dropdownMenu.classList.add("show");
+								dropdownMenu.style.display = "block";
+							} else {
+								dropdownMenu.classList.remove("show");
+								dropdownMenu.style.display = "none";
+							}
+						}
+					};
+				}
+
+				if (editBtn) {
+					editBtn.onclick = (e) => {
+						e.preventDefault();
+						e.stopPropagation();
+
+						// Close the dropdown
+						if (dropdownMenu) {
+							dropdownMenu.classList.remove("show");
+							dropdownMenu.style.display = "none";
+						}
+
+						// Get the row ID
+						const rowId = editBtn.getAttribute("data-row-id");
+						if (rowId) {
+							handleEditClick(currentEditor, rowId);
+						}
+					};
+				}
+
+				if (deleteBtn) {
+					deleteBtn.onclick = (e) => {
+						e.preventDefault();
+						e.stopPropagation();
+
+						// Close the dropdown
+						if (dropdownMenu) {
+							dropdownMenu.classList.remove("show");
+							dropdownMenu.style.display = "none";
+						}
+
+						// Get the row ID
+						const rowId = deleteBtn.getAttribute("data-row-id");
+						if (rowId) {
+							handleDeleteClick(currentEditor, rowId);
+						}
+					};
+				}
+
+				// Setup editable cells
+				const editableCells = currentEditor.dom.select(
+					".editable-cell",
+					newRow,
+				);
+				setupEditableCells(currentEditor, editableCells);
+			}
+
+			// Update product selection indicator
+			updateProductSelectionIndicator(
+				currentEditor,
+				quoteTable,
+				selectionType as ProductSelectionType,
+			);
+		}
+	};
+
+	// Helper function to update the amount cell in a row
+	const updateRowAmount = (row: HTMLElement, editor: TinyMCEEditor) => {
+		const quantityCell = row.querySelector(".quantity-cell");
+		const priceCell = row.querySelector(".price-cell");
+		const discountCell = row.querySelector(".discount-cell");
+		const amountCell = row.querySelector(".amount-cell");
+
+		if (quantityCell && priceCell && discountCell && amountCell) {
+			// Parse values, removing any formatting characters
+			const quantity = parseFloat(
+				quantityCell.textContent?.replace(/[^0-9.]/g, "") || "1",
+			);
+			const price = parseFloat(
+				priceCell.textContent?.replace(/[$,]/g, "") || "0",
+			);
+			const discount = parseFloat(
+				discountCell.textContent?.replace(/[%,]/g, "") || "0",
+			);
+
+			// Calculate amount
+			const amount = quantity * price * (1 - discount / 100);
+
+			// Format values with appropriate symbols and formatting
+			quantityCell.textContent = quantity.toString();
+			priceCell.textContent = `$${price.toFixed(2)}`;
+			discountCell.textContent = `${discount}%`;
+			amountCell.textContent = `$${amount.toFixed(2)}`;
+
+			// Update the quote summary
+			if (editor) {
+				const quoteTable = row.closest(".quote-table");
+				if (quoteTable) {
+					updateQuoteSummary(editor, quoteTable as HTMLElement);
+				}
 			}
 		}
 	};
@@ -1603,12 +2075,50 @@ function App() {
 		if (row) {
 			const cells = row.children;
 			const productData: ProductFormData = {
-				productName: cells[1].textContent || "",
-				description: cells[2].textContent || "",
-				quantity: cells[3].textContent || "",
-				price: (cells[4].textContent || "").replace("$", ""),
+				productName: "",
+				description: "",
+				quantity: "1",
+				price: "",
+				discount: "0",
 				rowId: rowId,
 			};
+
+			// Extract product name and description
+			const productCell = cells[1];
+			const productNameElement = productCell.querySelector(
+				"div > div:first-child",
+			);
+			const descriptionElement = productCell.querySelector(
+				"div > div:last-child",
+			);
+
+			productData.productName = productNameElement
+				? productNameElement.textContent || ""
+				: productCell.textContent || "";
+			productData.description = descriptionElement
+				? descriptionElement.textContent || ""
+				: "";
+
+			// Extract quantity, discount and price from editable cells
+			const quantityCell = row.querySelector(".quantity-cell");
+			const discountCell = row.querySelector(".discount-cell");
+			const priceCell = row.querySelector(".price-cell");
+
+			if (quantityCell) {
+				productData.quantity =
+					quantityCell.textContent?.replace(/[^0-9.]/g, "") || "1";
+			}
+
+			if (discountCell) {
+				productData.discount =
+					discountCell.textContent?.replace(/[%,]/g, "") || "0";
+			}
+
+			if (priceCell) {
+				productData.price = priceCell.textContent?.replace(/[$,]/g, "") || "";
+			}
+
+			console.log("Editing product:", productData);
 			setEditingProduct(productData);
 			setIsDrawerOpen(true);
 		}
@@ -1617,21 +2127,633 @@ function App() {
 	const handleDeleteClick = (editor: TinyMCEEditor, rowId: string) => {
 		const row = editor.dom.select(`[data-row-id="${rowId}"]`)[0];
 		if (row && confirm("Are you sure you want to delete this product?")) {
-			const quoteBody = row.closest(".quote-body") as HTMLElement;
-			const quoteTable = quoteBody?.closest(".quote-block") as HTMLElement;
-
+			const quoteBody = row.closest(".quote-body");
 			row.remove();
 			editor.fire("Change");
 
-			// Update the quote summary after deleting a row
-			if (quoteTable) {
-				updateQuoteSummary(editor, quoteTable);
+			// Update the quote summary
+			if (quoteBody) {
+				const quoteTable = quoteBody.closest(".quote-block") as HTMLElement;
+				if (quoteTable) {
+					updateQuoteSummary(editor, quoteTable);
+
+					// Check if there are any product rows left
+					const productRows = editor.dom.select(
+						".quote-row:not(.empty-row)",
+						quoteBody,
+					);
+					if (productRows.length === 0) {
+						// Show the empty row if no products are left
+						const emptyRow = editor.dom.select(".empty-row", quoteBody)[0];
+						if (emptyRow) {
+							emptyRow.style.display = "grid";
+						}
+					}
+				}
 			}
 		}
 	};
 
 	const handleImportProducts = (products: ProductFormData[]) => {
-		products.forEach((product) => handleAddProduct(product));
+		if (!currentEditor || products.length === 0) return;
+
+		const quoteBody = currentEditor.dom.select(".quote-body")[0];
+		if (quoteBody) {
+			// Hide the empty row when importing products
+			const emptyRow = currentEditor.dom.select(".empty-row", quoteBody)[0];
+			if (emptyRow) {
+				emptyRow.style.display = "none";
+			}
+
+			// Import each product
+			products.forEach((product) => {
+				handleAddProduct(product);
+			});
+		}
+	};
+
+	// Helper function to setup editable cells
+	const setupEditableCells = (editor: TinyMCEEditor, cells: HTMLElement[]) => {
+		cells.forEach((cell) => {
+			// Handle focus to select all content
+			cell.addEventListener("focus", () => {
+				// Select all content when focused
+				const selection = window.getSelection();
+				const range = document.createRange();
+				range.selectNodeContents(cell);
+				selection?.removeAllRanges();
+				selection?.addRange(range);
+
+				// Store original value for cancellation
+				cell.setAttribute("data-previous-value", cell.textContent || "");
+			});
+
+			// Handle blur to update values
+			cell.addEventListener("blur", () => {
+				const field = cell.getAttribute("data-field");
+				let value = cell.textContent || "";
+
+				// Clean up the value based on field type
+				if (field === "price") {
+					// Remove $ and any non-numeric characters except decimal point
+					value = value.replace(/[$,]/g, "");
+					if (value && !isNaN(parseFloat(value))) {
+						cell.textContent = "$" + parseFloat(value).toFixed(2);
+					} else {
+						cell.textContent = "$0.00";
+						value = "0";
+					}
+				} else if (field === "discount") {
+					// Remove % and any non-numeric characters
+					value = value.replace(/[%,]/g, "");
+					if (value && !isNaN(parseFloat(value))) {
+						cell.textContent = parseFloat(value) + "%";
+					} else {
+						cell.textContent = "0%";
+						value = "0";
+					}
+				} else if (field === "quantity") {
+					// Remove any non-numeric characters
+					value = value.replace(/[^0-9.]/g, "");
+					if (value && !isNaN(parseFloat(value))) {
+						cell.textContent = parseFloat(value).toString();
+					} else {
+						cell.textContent = "1";
+						value = "1";
+					}
+				}
+
+				// Update the amount cell
+				const row = cell.closest(".quote-row") as HTMLElement;
+				if (row) {
+					updateRowAmount(row, editor);
+				}
+
+				// Notify TinyMCE of the change
+				editor.fire("Change");
+			});
+
+			// Handle key events
+			cell.addEventListener("keydown", (e) => {
+				// Enter key should blur the cell
+				if (e.key === "Enter") {
+					e.preventDefault();
+					cell.blur();
+				}
+
+				// Escape key should cancel the edit
+				if (e.key === "Escape") {
+					e.preventDefault();
+					const previousValue = cell.getAttribute("data-previous-value") || "";
+					cell.textContent = previousValue;
+					cell.blur();
+				}
+			});
+		});
+	};
+
+	// Function to insert a signature block with user selection
+	const insertSignatureBlock = (editor: TinyMCEEditor) => {
+		// Create a unique ID for this signature block
+		const signatureBlockId = `signature-block-${Date.now()}`;
+
+		// Create the HTML for the signature block
+		const signatureBlockHtml = `
+			<div id="${signatureBlockId}" class="signature-block" style="margin: 20px auto; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; width: 30%;">
+				<div class="signature-header" style="margin-bottom: 15px; padding-bottom: 10px;">
+					<h3 style="margin: 0; font-size: 16px; color: #333;">Signature Block</h3>
+				</div>
+				
+				<div class="signature-user-selection">
+					<label style="display: block; margin-bottom: 5px; font-weight: 500;">Select Signatory:</label>
+					<div class="user-select-wrapper" style="position: relative;">
+						<input type="text" class="user-search-input" placeholder="Search or select user..." style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" data-signature-id="${signatureBlockId}">
+						<div class="user-dropdown" style="display: none; position: absolute; width: 100%; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 4px 4px; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+							${mockUsers
+								.map(
+									(user) => `
+								<div class="user-option" data-user-id="${user.id}" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0;">
+									<div style="font-weight: 500;">${user.name}</div>
+									<div style="font-size: 12px; color: #666;">${user.email} - ${user.role}</div>
+								</div>
+							`,
+								)
+								.join("")}
+						</div>
+					</div>
+				</div>
+			</div>
+		`;
+
+		// Insert the signature block at the current cursor position
+		editor.insertContent(signatureBlockHtml);
+
+		// Setup event handlers for the signature block
+		setTimeout(() => {
+			setupSignatureBlock(editor, signatureBlockId);
+		}, 100);
+	};
+
+	// Function to setup event handlers for a signature block
+	const setupSignatureBlock = (
+		editor: TinyMCEEditor,
+		signatureBlockId: string,
+	) => {
+		const signatureBlock = editor.dom.get(signatureBlockId);
+		if (!signatureBlock) return;
+
+		const searchInput = editor.dom.select(
+			`input[data-signature-id="${signatureBlockId}"]`,
+			signatureBlock,
+		)[0] as HTMLInputElement;
+		const dropdown = editor.dom.select(".user-dropdown", signatureBlock)[0];
+		const userOptions = editor.dom.select(".user-option", signatureBlock);
+
+		if (searchInput && dropdown) {
+			// Show dropdown when input is focused
+			searchInput.addEventListener("focus", () => {
+				dropdown.style.display = "block";
+			});
+
+			// Filter users when typing in the search input
+			searchInput.addEventListener("input", (e) => {
+				const target = e.target as HTMLInputElement;
+				const searchTerm = target.value.toLowerCase();
+
+				userOptions.forEach((option: HTMLElement) => {
+					const userName =
+						option.querySelector("div")?.textContent?.toLowerCase() || "";
+					const userEmail =
+						option
+							.querySelector("div:nth-child(2)")
+							?.textContent?.toLowerCase() || "";
+
+					if (userName.includes(searchTerm) || userEmail.includes(searchTerm)) {
+						option.style.display = "block";
+					} else {
+						option.style.display = "none";
+					}
+				});
+			});
+
+			// Handle clicking outside to close dropdown
+			editor.getDoc().addEventListener("click", (e) => {
+				const target = e.target as HTMLElement;
+				if (!target.closest(`#${signatureBlockId} .user-select-wrapper`)) {
+					dropdown.style.display = "none";
+				}
+			});
+		}
+
+		// Setup click handlers for user options
+		userOptions.forEach((option: HTMLElement) => {
+			option.addEventListener("click", () => {
+				const userId = option.getAttribute("data-user-id");
+				const selectedUser = mockUsers.find((user) => user.id === userId);
+
+				if (selectedUser && searchInput) {
+					// Update the input field with the selected user's name
+					searchInput.value = selectedUser.name;
+
+					// Hide the dropdown
+					dropdown.style.display = "none";
+
+					// Notify TinyMCE of the change
+					editor.fire("Change");
+				}
+			});
+		});
+	};
+
+	// Function to apply a theme to a quote table
+	const applyThemeToQuoteTable = (
+		editor: TinyMCEEditor,
+		quoteTable: HTMLElement,
+		themeId: string,
+		customTheme?: QuoteTableTheme,
+	) => {
+		// Find the theme by ID or use custom theme
+		const theme = customTheme || quoteTableThemes.find((t) => t.id === themeId);
+		if (!theme) return;
+
+		// Store the current theme ID on the quote table
+		quoteTable.setAttribute("data-theme", themeId);
+
+		// Apply theme to the quote-table div
+		const quoteTableDiv = quoteTable.querySelector(".quote-table");
+		if (quoteTableDiv) {
+			// Set the background color of the quote-table div
+			(
+				quoteTableDiv as HTMLElement
+			).style.background = `linear-gradient(${theme.headerBg}20, ${theme.rowBg} 95px)`;
+			(quoteTableDiv as HTMLElement).style.borderColor = theme.borderColor;
+		}
+
+		// Apply accent color to buttons for visual consistency
+		const buttons = editor.dom.select("button", quoteTable);
+		buttons.forEach((button) => {
+			button.style.borderColor = theme.accentColor;
+		});
+
+		// Notify TinyMCE of the change
+		editor.fire("Change");
+	};
+
+	// Function to create a theme selector for a quote table
+	const createThemeSelector = (
+		editor: TinyMCEEditor,
+		quoteTable: HTMLElement,
+	) => {
+		// Create a dropdown for theme selection
+		const themeSelector = editor.dom.create(
+			"div",
+			{
+				class: "theme-selector",
+				style: "position: absolute; top: 10px; right: 10px; z-index: 100;",
+			},
+			`
+			<button class="theme-selector-btn" style="background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 5px 10px; cursor: pointer; display: flex; align-items: center; font-size: 12px;">
+				<span style="margin-right: 5px;">Theme</span>
+				<svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+				</svg>
+			</button>
+			<div class="theme-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); width: 150px; max-height: 200px; overflow-y: auto; z-index: 1000;">
+				${quoteTableThemes
+					.map(
+						(theme) => `
+					<div class="theme-option" data-theme-id="${theme.id}" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center;">
+						<div style="width: 16px; height: 16px; border-radius: 4px; background-color: ${theme.headerBg}; margin-right: 8px; border: 1px solid #ddd;"></div>
+						<span>${theme.name}</span>
+					</div>
+				`,
+					)
+					.join("")}
+				<div class="theme-option custom-color-option" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center; border-top: 1px solid #eee;">
+					<div style="width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(45deg, #f44336, #2196F3, #4CAF50); margin-right: 8px; border: 1px solid #ddd;"></div>
+					<span>Custom Color</span>
+				</div>
+			</div>
+			`,
+		);
+
+		// Insert the theme selector into the quote table
+		quoteTable.style.position = "relative";
+		quoteTable.appendChild(themeSelector);
+
+		// Setup event handlers for the theme selector
+		const themeButton = editor.dom.select(
+			".theme-selector-btn",
+			themeSelector,
+		)[0];
+		const themeDropdown = editor.dom.select(
+			".theme-dropdown",
+			themeSelector,
+		)[0];
+		const themeOptions = editor.dom.select(".theme-option", themeSelector);
+
+		// Toggle dropdown when button is clicked
+		themeButton.addEventListener("click", () => {
+			const isVisible = themeDropdown.style.display === "block";
+			themeDropdown.style.display = isVisible ? "none" : "block";
+		});
+
+		// Handle clicking outside to close dropdown
+		editor.getDoc().addEventListener("click", (e) => {
+			const target = e.target as HTMLElement;
+			if (!target.closest(".theme-selector")) {
+				themeDropdown.style.display = "none";
+			}
+		});
+
+		// Handle theme selection
+		themeOptions.forEach((option) => {
+			option.addEventListener("click", () => {
+				const themeId = option.getAttribute("data-theme-id");
+				if (themeId) {
+					applyThemeToQuoteTable(editor, quoteTable, themeId);
+					themeDropdown.style.display = "none";
+				}
+			});
+		});
+
+		// Handle custom color option
+		const customColorOption = editor.dom.select(
+			".custom-color-option",
+			themeSelector,
+		)[0];
+		if (customColorOption) {
+			customColorOption.addEventListener("click", () => {
+				// Create a color picker input
+				const input = document.createElement("input");
+				input.type = "color";
+				input.value = "#1976d2"; // Default blue theme color
+
+				// When color is selected, apply it to the quote table
+				input.addEventListener("input", (e) => {
+					const color = (e.target as HTMLInputElement).value;
+
+					// Apply the color to the quote table header
+					const quoteHeader = editor.dom.select(
+						".quote-header",
+						quoteTable,
+					)[0] as HTMLElement;
+					if (quoteHeader) {
+						quoteHeader.style.backgroundColor = color;
+					}
+
+					// Apply the color to buttons and other accent elements
+					const buttons = editor.dom.select("button", quoteTable);
+					buttons.forEach((button) => {
+						if (button.classList.contains("add-product-btn")) {
+							button.style.backgroundColor = color;
+						} else {
+							button.style.borderColor = color;
+						}
+					});
+
+					// Store the custom color on the quote table
+					quoteTable.setAttribute("data-custom-color", color);
+
+					// Notify TinyMCE of the change
+					editor.fire("Change");
+				});
+
+				// Trigger the color picker
+				input.click();
+
+				// Hide the dropdown
+				themeDropdown.style.display = "none";
+			});
+		}
+	};
+
+	// Function to create a product dropdown
+	const createProductDropdown = (
+		editor: TinyMCEEditor,
+		quoteTable: HTMLElement,
+	) => {
+		// Create dropdown container
+		const dropdown = document.createElement("div");
+		dropdown.className = "product-dropdown";
+		dropdown.style.position = "fixed";
+		dropdown.style.zIndex = "9999";
+		dropdown.style.background = "white";
+		dropdown.style.border = "1px solid #ddd";
+		dropdown.style.borderRadius = "4px";
+		dropdown.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+		dropdown.style.width = "250px";
+		dropdown.style.maxHeight = "400px";
+		dropdown.style.overflowY = "auto";
+		dropdown.style.padding = "8px 0";
+
+		// Add search input
+		const searchContainer = document.createElement("div");
+		searchContainer.style.padding = "0 12px 8px";
+		searchContainer.style.borderBottom = "1px solid #eee";
+		searchContainer.style.marginBottom = "8px";
+
+		const searchInput = document.createElement("input");
+		searchInput.type = "text";
+		searchInput.placeholder = "Search products...";
+		searchInput.style.width = "100%";
+		searchInput.style.padding = "8px";
+		searchInput.style.border = "1px solid #ddd";
+		searchInput.style.borderRadius = "4px";
+		searchInput.style.boxSizing = "border-box";
+
+		searchContainer.appendChild(searchInput);
+		dropdown.appendChild(searchContainer);
+
+		// Add "Add New Product" option
+		const addNewOption = document.createElement("div");
+		addNewOption.className = "dropdown-option add-new-option";
+		addNewOption.style.padding = "8px 12px";
+		addNewOption.style.cursor = "pointer";
+		addNewOption.style.display = "flex";
+		addNewOption.style.alignItems = "center";
+		addNewOption.style.color = "#4CAF50";
+		addNewOption.style.fontWeight = "500";
+		addNewOption.innerHTML = `
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+				<path d="M12 5V19M5 12H19" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+			</svg>
+			Add New Product
+		`;
+
+		addNewOption.addEventListener("click", () => {
+			// Remove dropdown
+			if (dropdown.parentNode) {
+				document.body.removeChild(dropdown);
+			}
+
+			// Open drawer to add new product
+			setIsDrawerOpen(true);
+		});
+
+		dropdown.appendChild(addNewOption);
+
+		// Add divider
+		const divider = document.createElement("div");
+		divider.style.height = "1px";
+		divider.style.background = "#eee";
+		divider.style.margin = "8px 0";
+		dropdown.appendChild(divider);
+
+		// Add recent/popular products
+		const products = SAMPLE_PRODUCTS.slice(0, 5); // Show first 5 products
+
+		products.forEach((product) => {
+			const option = document.createElement("div");
+			option.className = "dropdown-option";
+			option.style.padding = "8px 12px";
+			option.style.cursor = "pointer";
+			option.style.display = "flex";
+			option.style.alignItems = "center";
+			option.style.justifyContent = "space-between";
+
+			const productInfo = document.createElement("div");
+			productInfo.innerHTML = `
+				<div style="font-weight: 500;">${product.productName}</div>
+				<div style="font-size: 12px; color: #666;">${product.description}</div>
+			`;
+
+			option.appendChild(productInfo);
+
+			// Add quick-add button
+			const addButton = document.createElement("button");
+			addButton.innerHTML = "Add";
+			addButton.style.background = "#f1f1f1";
+			addButton.style.border = "1px solid #ddd";
+			addButton.style.borderRadius = "4px";
+			addButton.style.padding = "4px 8px";
+			addButton.style.cursor = "pointer";
+
+			addButton.addEventListener("click", (e) => {
+				e.stopPropagation(); // Prevent option click
+
+				// Add product to quote
+				addProductToQuote(editor, quoteTable, product);
+
+				// Remove dropdown
+				if (dropdown.parentNode) {
+					document.body.removeChild(dropdown);
+				}
+			});
+
+			option.appendChild(addButton);
+
+			// Add click handler for the entire option
+			option.addEventListener("click", () => {
+				// Add product to quote
+				addProductToQuote(editor, quoteTable, product);
+
+				// Remove dropdown
+				if (dropdown.parentNode) {
+					document.body.removeChild(dropdown);
+				}
+			});
+
+			dropdown.appendChild(option);
+		});
+
+		// Add "View All Products" option
+		const viewAllOption = document.createElement("div");
+		viewAllOption.className = "dropdown-option view-all-option";
+		viewAllOption.style.padding = "8px 12px";
+		viewAllOption.style.cursor = "pointer";
+		viewAllOption.style.display = "flex";
+		viewAllOption.style.alignItems = "center";
+		viewAllOption.style.justifyContent = "center";
+		viewAllOption.style.color = "#2196F3";
+		viewAllOption.style.borderTop = "1px solid #eee";
+		viewAllOption.style.marginTop = "8px";
+		viewAllOption.style.paddingTop = "8px";
+		viewAllOption.innerHTML = "View All Products";
+
+		viewAllOption.addEventListener("click", () => {
+			// Remove dropdown
+			if (dropdown.parentNode) {
+				document.body.removeChild(dropdown);
+			}
+
+			// Open product list drawer
+			setIsProductListOpen(true);
+		});
+
+		dropdown.appendChild(viewAllOption);
+
+		// Add search functionality
+		searchInput.addEventListener("input", () => {
+			const searchTerm = searchInput.value.toLowerCase();
+			const options = dropdown.querySelectorAll(
+				".dropdown-option:not(.add-new-option):not(.view-all-option)",
+			);
+
+			options.forEach((option) => {
+				const productName =
+					option
+						.querySelector("div > div:first-child")
+						?.textContent?.toLowerCase() || "";
+				if (productName.includes(searchTerm)) {
+					(option as HTMLElement).style.display = "flex";
+				} else {
+					(option as HTMLElement).style.display = "none";
+				}
+			});
+		});
+
+		return dropdown;
+	};
+
+	// Function to position the dropdown
+	const positionDropdown = (dropdown: HTMLElement, x: number, y: number) => {
+		// Get viewport dimensions
+		const viewportWidth = window.innerWidth;
+		const viewportHeight = window.innerHeight;
+
+		// Calculate dropdown dimensions
+		const dropdownWidth = dropdown.offsetWidth;
+		const dropdownHeight = dropdown.offsetHeight;
+
+		// Position dropdown
+		let posX = x;
+		let posY = y;
+
+		// Ensure dropdown doesn't go off-screen to the right
+		if (posX + dropdownWidth > viewportWidth) {
+			posX = viewportWidth - dropdownWidth - 10;
+		}
+
+		// Ensure dropdown doesn't go off-screen at the bottom
+		if (posY + dropdownHeight > viewportHeight) {
+			posY = viewportHeight - dropdownHeight - 10;
+		}
+
+		dropdown.style.left = `${posX}px`;
+		dropdown.style.top = `${posY}px`;
+	};
+
+	// Function to add a product to the quote
+	const addProductToQuote = (
+		editor: TinyMCEEditor,
+		quoteTable: HTMLElement,
+		product: MockProduct,
+	) => {
+		const quoteBody = editor.dom.select(".quote-body", quoteTable)[0];
+		if (quoteBody) {
+			// Create product form data from the mock product
+			const productData: ProductFormData = {
+				productName: product.productName,
+				description: product.description,
+				price: product.price,
+				quantity: "1", // Default quantity
+				discount: "0", // Default discount
+			};
+
+			// Use the existing handleAddProduct function
+			handleAddProduct(productData);
+		}
 	};
 
 	return (
@@ -1640,7 +2762,9 @@ function App() {
 			<Editor
 				tinymceScriptSrc={"/tinymce/tinymce.min.js"}
 				init={{
-					height: 500,
+					height: 1000,
+					width: 900,
+					content_css: "/css/quote-styles.css",
 					menubar: true,
 					plugins: [
 						"advlist",
@@ -1664,13 +2788,78 @@ function App() {
 					toolbar:
 						"undo redo | blocks | " +
 						"bold italic forecolor | alignleft aligncenter " +
-						"removeformat | help | insertquotetable",
+						"removeformat | help | insertquotetable insertsignatureblock",
 					setup: (editor) => {
 						setCurrentEditor(editor);
 
 						editor.ui.registry.addButton("insertquotetable", {
 							text: "Add Quote Table",
 							onAction: () => insertQuoteTable(editor),
+						});
+
+						editor.ui.registry.addButton("insertsignatureblock", {
+							text: "Add Signature Block",
+							onAction: () => insertSignatureBlock(editor),
+						});
+
+						// Register a custom theme color picker button
+						editor.ui.registry.addButton("themepicker", {
+							text: "Theme Color",
+							icon: "color-picker",
+							onAction: () => {
+								const selectedNode = editor.selection.getNode();
+								const quoteTable = editor.dom.getParent(
+									selectedNode,
+									".quote-block",
+								) as HTMLElement;
+
+								if (quoteTable) {
+									// Create a color picker input
+									const input = document.createElement("input");
+									input.type = "color";
+									input.value = "#1976d2"; // Default blue theme color
+
+									// When color is selected, apply it directly to the quote table
+									input.addEventListener("input", (e) => {
+										const color = (e.target as HTMLInputElement).value;
+
+										// Apply color to the quote table div only (not the header)
+										const quoteTableDiv = quoteTable.querySelector(
+											".quote-table",
+										) as HTMLElement;
+										if (quoteTableDiv) {
+											quoteTableDiv.style.background = `linear-gradient(${color}20, #ffffff 95px)`;
+											quoteTableDiv.style.borderColor = color;
+										}
+
+										// Apply accent color to buttons for visual consistency
+										const buttons = editor.dom.select("button", quoteTable);
+										buttons.forEach((button) => {
+											button.style.borderColor = color;
+										});
+
+										// Store the custom color on the quote table
+										quoteTable.setAttribute("data-custom-color", color);
+
+										// Notify TinyMCE of the change
+										editor.fire("Change");
+									});
+
+									// Trigger the color picker
+									input.click();
+								}
+							},
+						});
+
+						// Add a context toolbar that appears when a quote table is selected
+						editor.ui.registry.addContextToolbar("quoteTableToolbar", {
+							predicate: (node) => {
+								// Check if the current node is inside a quote table
+								return !!editor.dom.getParent(node, ".quote-block");
+							},
+							items: "themepicker",
+							position: "selection",
+							scope: "node",
 						});
 
 						editor.on("click", (e) => {
@@ -1707,13 +2896,13 @@ function App() {
 						});
 					},
 					content_style: `
-						.quote-block { margin: 15px 0; }
 						.add-product-btn:hover { background-color: #45a049; }
 						.edit-row-btn:hover { background-color: #1976D2; }
 						.delete-row-btn:hover { background-color: #d32f2f; }
 						.delete-table-btn:hover { background-color: #d32f2f; }
 						.column-visibility-btn:hover { background-color: #7B1FA2; }
 						.quote-row:hover { background-color: #f5f5f5; }
+						.quote-row:hover .row-actions { display: flex !important; }
 						.quote-title-editable:empty:before, .quote-description-editable:empty:before {
 							content: attr(data-placeholder);
 							color: #aaa;
@@ -1746,6 +2935,102 @@ function App() {
 						}
 						.quote-row {
 							position: relative;
+						}
+						.quote-header {
+							grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr;
+						}
+						.quote-row {
+							grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr;
+						}
+						
+						/* Signature Block Styles */
+						.signature-block {
+							margin: 20px auto;
+							padding: 15px;
+							border: 1px solid #ddd;
+							border-radius: 8px;
+							background-color: #f9f9f9;
+							width: 30%;
+						}
+						
+						.signature-header {
+							margin-bottom: 15px;
+							padding-bottom: 10px;
+						}
+						
+						.signature-header h3 {
+							margin: 0;
+							font-size: 16px;
+							color: #333;
+						}
+						
+						.signature-user-selection {
+							margin-bottom: 0;
+						}
+						
+						.user-search-input {
+							width: 100%;
+							padding: 8px 12px;
+							border: 1px solid #ddd;
+							border-radius: 4px;
+							box-sizing: border-box;
+						}
+						
+						.user-search-input:focus {
+							border-color: #2196F3;
+							outline: none;
+							box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+						}
+						
+						.user-dropdown {
+							display: none;
+							position: absolute;
+							width: 100%;
+							max-height: 200px;
+							overflow-y: auto;
+							background: white;
+							border: 1px solid #ddd;
+							border-top: none;
+							border-radius: 0 0 4px 4px;
+							z-index: 1000;
+							box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+						}
+						
+						.user-option {
+							padding: 8px 12px;
+							cursor: pointer;
+							border-bottom: 1px solid #f0f0f0;
+						}
+						
+						.user-option:hover {
+							background-color: #f5f5f5;
+						}
+						
+						.signature-area {
+							margin-top: 20px;
+						}
+						
+						.signature-line {
+							border-bottom: 1px solid #333;
+							padding-bottom: 5px;
+							margin-bottom: 5px;
+							min-height: 40px;
+						}
+						
+						.signature-name {
+							font-weight: 500;
+							min-height: 20px;
+						}
+						
+						.signature-title {
+							font-size: 12px;
+							color: #666;
+							min-height: 16px;
+						}
+						.signature-date {
+							font-size: 12px;
+							color: #666;
+							margin-top: 10px;
 						}
 					`,
 				}}
