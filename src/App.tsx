@@ -2429,12 +2429,17 @@ function App() {
 				`,
 					)
 					.join("")}
+				<div class="theme-option custom-theme-option" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center; border-top: 1px solid #eee;">
+					<div style="width: 16px; height: 16px; border-radius: 4px; background: linear-gradient(135deg, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); margin-right: 8px; border: 1px solid #ddd;"></div>
+					<span>Custom Theme</span>
+				</div>
 			</div>
 			`,
 		);
 
 		// Insert the theme selector into the quote table
 		quoteTable.style.position = "relative";
+
 		quoteTable.appendChild(themeSelector);
 
 		// Setup event handlers for the theme selector
@@ -2446,7 +2451,14 @@ function App() {
 			".theme-dropdown",
 			themeSelector,
 		)[0];
-		const themeOptions = editor.dom.select(".theme-option", themeSelector);
+		const themeOptions = editor.dom.select(
+			".theme-option:not(.custom-theme-option)",
+			themeSelector,
+		);
+		const customThemeOption = editor.dom.select(
+			".custom-theme-option",
+			themeSelector,
+		)[0];
 
 		// Toggle dropdown when button is clicked
 		themeButton.addEventListener("click", () => {
@@ -2472,6 +2484,61 @@ function App() {
 				}
 			});
 		});
+
+		// Handle custom theme option
+		if (customThemeOption) {
+			customThemeOption.addEventListener("click", () => {
+				// Create a hidden color input
+				const colorInput = document.createElement("input");
+				colorInput.type = "color";
+				colorInput.value = "#1976d2"; // Default blue color
+				colorInput.style.position = "absolute";
+				colorInput.style.visibility = "hidden";
+
+				// Add to DOM
+				document.body.appendChild(colorInput);
+
+				// Close dropdown
+				themeDropdown.style.display = "none";
+
+				// Trigger click on the color input to open the native color picker
+				colorInput.click();
+
+				// Handle color selection
+				colorInput.addEventListener("change", () => {
+					const headerBg = colorInput.value;
+
+					// Create custom theme based on the blue theme but with custom header color
+					const customTheme: QuoteTableTheme = {
+						id: "custom",
+						name: "Custom Theme",
+						headerBg,
+						headerText: "#ffffff", // White text for contrast
+						rowBg: "#f5f9ff",
+						rowAltBg: "#e3f2fd",
+						rowText: "#333333",
+						borderColor: "#bbdefb",
+						accentColor: headerBg, // Use header color as accent color
+					};
+
+					// Apply custom theme
+					applyThemeToQuoteTable(editor, quoteTable, "custom", customTheme);
+
+					// Remove the color input from DOM
+					document.body.removeChild(colorInput);
+				});
+
+				// Handle if user cancels the color picker (cleanup)
+				colorInput.addEventListener("blur", () => {
+					// Small delay to allow for the change event to fire first if color was selected
+					setTimeout(() => {
+						if (document.body.contains(colorInput)) {
+							document.body.removeChild(colorInput);
+						}
+					}, 200);
+				});
+			});
+		}
 	};
 
 	// Function to create a product dropdown
