@@ -1,7 +1,9 @@
 import { Editor } from "@tinymce/tinymce-react";
 import { Editor as TinyMCEEditor } from "tinymce";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
+// Import the toggle price function
+import { togglePriceColumn } from "./toggle-price";
 
 interface ProductFormData {
 	productName: string;
@@ -1062,6 +1064,13 @@ function App() {
 									style="margin-left: 8px; background-color: #2196F3; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;"
 								>
 									Add description
+								</button>
+								<button 
+									type="button"
+									class="dropdown-btn" 
+									style="margin-left: 8px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;"
+								>
+									Options ▼
 								</button>
 							</div>
 							<div class="quote-description-container" style="display: none; margin-top: 8px; width: 100%;">
@@ -2697,6 +2706,77 @@ function App() {
 		}
 	};
 
+	const togglePriceColumn = (editor: TinyMCEEditor, isHidden: boolean) => {
+		const quoteTable = editor.dom.select(".quote-table")[0];
+		if (quoteTable) {
+			// Create visibility object
+			const visibility: ColumnVisibility = {
+				productName: true,
+				quantity: true,
+				discount: true,
+				price: !isHidden, // Hide/show price based on parameter
+				amount: true,
+			};
+
+			// Update table columns
+			updateTableColumns(editor, visibility);
+
+			console.log(`Price column ${isHidden ? "hidden" : "shown"}`);
+		}
+	};
+
+	// Generic function to toggle any column visibility
+	const toggleColumnVisibility = (
+		editor: TinyMCEEditor,
+		columnType: keyof ColumnVisibility,
+		isHidden: boolean,
+	) => {
+		const quoteTable = editor.dom.select(".quote-table")[0];
+		if (quoteTable) {
+			// Get current visibility state
+			const currentVisibility: ColumnVisibility = {
+				productName: true, // Product name is always visible
+				quantity: true,
+				discount: true,
+				price: true,
+				amount: true,
+			};
+
+			// Check current visibility of columns
+			const quantityHeaders = editor.dom.select(".quantity-header", quoteTable);
+			if (quantityHeaders.length > 0) {
+				const computedStyle = window.getComputedStyle(quantityHeaders[0]);
+				currentVisibility.quantity = computedStyle.display !== "none";
+			}
+
+			const discountHeaders = editor.dom.select(".discount-header", quoteTable);
+			if (discountHeaders.length > 0) {
+				const computedStyle = window.getComputedStyle(discountHeaders[0]);
+				currentVisibility.discount = computedStyle.display !== "none";
+			}
+
+			const priceHeaders = editor.dom.select(".price-header", quoteTable);
+			if (priceHeaders.length > 0) {
+				const computedStyle = window.getComputedStyle(priceHeaders[0]);
+				currentVisibility.price = computedStyle.display !== "none";
+			}
+
+			const amountHeaders = editor.dom.select(".amount-header", quoteTable);
+			if (amountHeaders.length > 0) {
+				const computedStyle = window.getComputedStyle(amountHeaders[0]);
+				currentVisibility.amount = computedStyle.display !== "none";
+			}
+
+			// Update the specific column visibility
+			currentVisibility[columnType] = !isHidden;
+
+			// Update table columns with the new visibility settings
+			updateTableColumns(editor, currentVisibility);
+
+			console.log(`${columnType} column ${isHidden ? "hidden" : "shown"}`);
+		}
+	};
+
 	return (
 		<div className="container">
 			<h1>TinyMCE Editor</h1>
@@ -2781,383 +2861,383 @@ function App() {
 								// Force TinyMCE to update its content
 								editor.fire("Change");
 							}
-							// Handle quote options button click
-							else if (
-								target.classList.contains("quote-options-btn") ||
-								target.closest(".quote-options-btn")
-							) {
+							// Handle dropdown button click
+							else if (target.classList.contains("dropdown-btn")) {
 								e.preventDefault();
 								e.stopPropagation();
 
-								// Find the button and dropdown
-								const button = target.classList.contains("quote-options-btn")
-									? target
-									: (target.closest(".quote-options-btn") as HTMLElement);
-
-								const container = button.closest(".quote-options-container");
-								if (!container) return;
-
-								const dropdown = container.querySelector(
-									".quote-options-dropdown",
-								) as HTMLElement;
-								if (!dropdown) return;
-
-								// Toggle the dropdown visibility
-								const isVisible = dropdown.style.display !== "none";
-								dropdown.style.display = isVisible ? "none" : "block";
-
-								// Add a click outside listener to close the dropdown
-								if (!isVisible) {
-									const closeDropdown = (event: MouseEvent) => {
-										const clickTarget = event.target as HTMLElement;
-										if (
-											!dropdown.contains(clickTarget) &&
-											clickTarget !== button &&
-											!button.contains(clickTarget)
-										) {
-											dropdown.style.display = "none";
-											document.removeEventListener("click", closeDropdown);
-										}
-									};
-
-									// Use setTimeout to avoid immediate closing
-									setTimeout(() => {
-										document.addEventListener("click", closeDropdown);
-									}, 0);
-								}
-							}
-							// Handle dropdown item clicks
-							else if (
-								target.classList.contains("dropdown-item") ||
-								target.closest(".dropdown-item")
-							) {
-								e.preventDefault();
-								e.stopPropagation();
-
-								// Don't close the dropdown when clicking on an item
-								e.stopPropagation();
-							}
-							// Handle toggle button clicks
-							else if (
-								target.classList.contains("toggle-btn") ||
-								target.closest(".toggle-btn")
-							) {
-								e.preventDefault();
-								e.stopPropagation();
-
-								const toggleBtn = target.classList.contains("toggle-btn")
-									? (target as HTMLElement)
-									: (target.closest(".toggle-btn") as HTMLElement);
-
-								const option = toggleBtn.getAttribute("data-option");
-								if (!option) return;
-
-								// Toggle the button state
-								const isActive = toggleBtn.classList.contains("active");
-								const newState = !isActive;
-
-								if (isActive) {
-									toggleBtn.classList.remove("active");
-									toggleBtn.style.backgroundColor = "#e9e9e9";
-
-									// Move the circle to the left
-									const circle = toggleBtn.querySelector(
-										".toggle-circle",
-									) as HTMLElement;
-									if (circle) {
-										circle.style.left = "2px";
-									}
-								} else {
-									toggleBtn.classList.add("active");
-									toggleBtn.style.backgroundColor = "#4CAF50";
-
-									// Move the circle to the right
-									const circle = toggleBtn.querySelector(
-										".toggle-circle",
-									) as HTMLElement;
-									if (circle) {
-										circle.style.left = "22px";
-									}
+								// Find any existing dropdown and remove it first
+								const existingDropdown =
+									editor.dom.select(".options-dropdown")[0];
+								if (existingDropdown) {
+									existingDropdown.parentNode?.removeChild(existingDropdown);
+									return; // Toggle behavior
 								}
 
-								// Get current column visibility - default all visible
-								const visibility: ColumnVisibility = {
-									productName: true,
-									quantity: true,
-									discount: true,
-									price: true,
-									amount: true,
-								};
+								// Create dropdown element using TinyMCE's DOM API
+								const dropdown = editor.dom.create(
+									"div",
+									{
+										class: "options-dropdown",
+										style:
+											"position: absolute; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; min-width: 150px;",
+									},
+									`
+										<div class="dropdown-item" style="padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide price</span>
+											<div class="toggle-switch" style="position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;">
+												<div class="toggle-circle" style="position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; background: white; border-radius: 50%; transition: all 0.2s;"></div>
+											</div>
+										</div>
+										<div class="dropdown-item" style="padding: 8px 12px; cursor: pointer; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide quantity</span>
+											<div class="toggle-switch" style="position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;">
+												<div class="toggle-circle" style="position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; background: white; border-radius: 50%; transition: all 0.2s;"></div>
+											</div>
+										</div>
+										<div class="dropdown-item" style="padding: 8px 12px; cursor: pointer; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide discount</span>
+											<div class="toggle-switch" style="position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;">
+												<div class="toggle-circle" style="position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; background: white; border-radius: 50%; transition: all 0.2s;"></div>
+											</div>
+										</div>
+										<div class="dropdown-item" style="padding: 8px 12px; cursor: pointer; border-top: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+											<span>Hide amount</span>
+											<div class="toggle-switch" style="position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;">
+												<div class="toggle-circle" style="position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; background: white; border-radius: 50%; transition: all 0.2s;"></div>
+											</div>
+										</div>
+									`,
+								);
 
-								// Update the specific column visibility based on the option
-								if (option === "price") {
-									visibility.price = !newState;
-								} else if (option === "quantity") {
-									visibility.quantity = !newState;
-								} else if (option === "discount") {
-									visibility.discount = !newState;
-								} else if (option === "amount") {
-									visibility.amount = !newState;
-								}
-
-								// Apply the column visibility changes directly
-								updateTableColumns(editor, visibility);
-
-								// Handle the specific option
-								console.log(`Toggle ${option}: ${newState}`);
-
-								// Don't close the dropdown
-								e.stopPropagation();
-							}
-							// Handle existing click handlers
-							else if (target.classList.contains("edit-row-btn")) {
-								e.preventDefault();
-								const rowId = target.getAttribute("data-row-id");
-								if (rowId) handleEditClick(editor, rowId);
-							} else if (target.classList.contains("delete-row-btn")) {
-								e.preventDefault();
-								const rowId = target.getAttribute("data-row-id");
-								if (rowId) handleDeleteClick(editor, rowId);
-							}
-						});
-
-						// Register a custom theme color picker button
-						editor.ui.registry.addButton("themepicker", {
-							text: "Theme Color",
-							icon: "color-picker",
-							onAction: () => {
-								const selectedNode = editor.selection.getNode();
-								const quoteTable = editor.dom.getParent(
-									selectedNode,
-									".quote-block",
-								) as HTMLElement;
+								// Check current column visibility and update toggle states
+								const quoteTable = editor.dom.select(".quote-table")[0];
+								let isPriceHidden = false;
+								let isQuantityHidden = false;
+								let isDiscountHidden = false;
+								let isAmountHidden = false;
 
 								if (quoteTable) {
-									// Create a color picker input
-									const input = document.createElement("input");
-									input.type = "color";
-									input.value = "#1976d2"; // Default blue theme color
+									// Check if price headers are hidden by checking their display style
+									const priceHeaders = editor.dom.select(
+										".price-header",
+										quoteTable,
+									);
+									if (priceHeaders.length > 0) {
+										// Check the computed style to get the actual display value
+										const computedStyle = window.getComputedStyle(
+											priceHeaders[0],
+										);
+										isPriceHidden = computedStyle.display === "none";
+										console.log(
+											"Price column is currently hidden:",
+											isPriceHidden,
+										);
+									}
 
-									// When color is selected, apply it directly to the quote table
-									input.addEventListener("input", (e) => {
-										const color = (e.target as HTMLInputElement).value;
+									// Check if quantity headers are hidden
+									const quantityHeaders = editor.dom.select(
+										".quantity-header",
+										quoteTable,
+									);
+									if (quantityHeaders.length > 0) {
+										const computedStyle = window.getComputedStyle(
+											quantityHeaders[0],
+										);
+										isQuantityHidden = computedStyle.display === "none";
+										console.log(
+											"Quantity column is currently hidden:",
+											isQuantityHidden,
+										);
+									}
 
-										// Apply color to the quote table div only (not the header)
-										const quoteTableDiv = quoteTable.querySelector(
-											".quote-table",
-										) as HTMLElement;
-										if (quoteTableDiv) {
-											quoteTableDiv.style.background = `linear-gradient(${color}20, #ffffff 95px)`;
-											quoteTableDiv.style.borderColor = color;
-										}
+									// Check if discount headers are hidden
+									const discountHeaders = editor.dom.select(
+										".discount-header",
+										quoteTable,
+									);
+									if (discountHeaders.length > 0) {
+										const computedStyle = window.getComputedStyle(
+											discountHeaders[0],
+										);
+										isDiscountHidden = computedStyle.display === "none";
+										console.log(
+											"Discount column is currently hidden:",
+											isDiscountHidden,
+										);
+									}
 
-										// Apply accent color to buttons for visual consistency
-										const buttons = editor.dom.select("button", quoteTable);
-										buttons.forEach((button) => {
-											button.style.borderColor = color;
-										});
+									// Check if amount headers are hidden
+									const amountHeaders = editor.dom.select(
+										".amount-header",
+										quoteTable,
+									);
+									if (amountHeaders.length > 0) {
+										const computedStyle = window.getComputedStyle(
+											amountHeaders[0],
+										);
+										isAmountHidden = computedStyle.display === "none";
+										console.log(
+											"Amount column is currently hidden:",
+											isAmountHidden,
+										);
+									}
+								}
 
-										// Store the custom color on the quote table
-										quoteTable.setAttribute("data-custom-color", color);
+								// Get the parent container of the button
+								const parentContainer = target.closest(".quote-title-section");
+								if (!parentContainer) return;
 
-										// Notify TinyMCE of the change
-										editor.fire("Change");
+								// Append the dropdown to the parent container
+								parentContainer.appendChild(dropdown);
+
+								// Position the dropdown below the button
+								const buttonRect = target.getBoundingClientRect();
+								const parentRect = parentContainer.getBoundingClientRect();
+
+								// Calculate position relative to the parent
+								const left = buttonRect.left - parentRect.left;
+								const top = buttonRect.bottom - parentRect.top;
+
+								dropdown.style.left = `${left}px`;
+								dropdown.style.top = `${top}px`;
+
+								// Add click event listeners to dropdown items
+								const items = dropdown.querySelectorAll(".dropdown-item");
+								items.forEach((item, index) => {
+									// Add hover effects
+									item.addEventListener("mouseover", () => {
+										(item as HTMLElement).style.backgroundColor = "#f5f5f5";
+									});
+									item.addEventListener("mouseout", () => {
+										(item as HTMLElement).style.backgroundColor = "white";
 									});
 
-									// Trigger the color picker
-									input.click();
+									// Add click handler
+									item.addEventListener("click", () => {
+										// Handle the selected option without alerts
+										if (index === 0) {
+											// Toggle the switch for Hide price option
+											const toggleSwitch = item.querySelector(".toggle-switch");
+											const toggleCircle = item.querySelector(
+												".toggle-circle",
+											) as HTMLElement;
+
+											if (toggleSwitch) {
+												toggleSwitch.classList.toggle("active");
+												const isActive =
+													toggleSwitch.classList.contains("active");
+
+												if (isActive) {
+													toggleSwitch.setAttribute(
+														"style",
+														"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
+													);
+													toggleCircle.style.left = "20px";
+												} else {
+													toggleSwitch.setAttribute(
+														"style",
+														"position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;",
+													);
+													toggleCircle.style.left = "2px";
+												}
+
+												// Toggle the price column visibility
+												toggleColumnVisibility(editor, "price", isActive);
+
+												console.log(
+													"Hide price toggled from item click:",
+													isActive,
+												);
+											}
+
+											// Don't close the dropdown when clicking the toggle
+											return;
+										} else if (index === 1) {
+											// Toggle the switch for Hide quantity option
+											const toggleSwitch = item.querySelector(".toggle-switch");
+											const toggleCircle = item.querySelector(
+												".toggle-circle",
+											) as HTMLElement;
+
+											if (toggleSwitch) {
+												toggleSwitch.classList.toggle("active");
+												const isActive =
+													toggleSwitch.classList.contains("active");
+
+												if (isActive) {
+													toggleSwitch.setAttribute(
+														"style",
+														"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
+													);
+													toggleCircle.style.left = "20px";
+												} else {
+													toggleSwitch.setAttribute(
+														"style",
+														"position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;",
+													);
+													toggleCircle.style.left = "2px";
+												}
+
+												// Toggle the quantity column visibility
+												toggleColumnVisibility(editor, "quantity", isActive);
+
+												console.log(
+													"Hide quantity toggled from item click:",
+													isActive,
+												);
+											}
+
+											// Don't close the dropdown when clicking the toggle
+											return;
+										} else if (index === 2) {
+											// Toggle the switch for Hide discount option
+											const toggleSwitch = item.querySelector(".toggle-switch");
+											const toggleCircle = item.querySelector(
+												".toggle-circle",
+											) as HTMLElement;
+
+											if (toggleSwitch) {
+												toggleSwitch.classList.toggle("active");
+												const isActive =
+													toggleSwitch.classList.contains("active");
+
+												if (isActive) {
+													toggleSwitch.setAttribute(
+														"style",
+														"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
+													);
+													toggleCircle.style.left = "20px";
+												} else {
+													toggleSwitch.setAttribute(
+														"style",
+														"position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;",
+													);
+													toggleCircle.style.left = "2px";
+												}
+
+												// Toggle the discount column visibility
+												toggleColumnVisibility(editor, "discount", isActive);
+
+												console.log(
+													"Hide discount toggled from item click:",
+													isActive,
+												);
+											}
+
+											// Don't close the dropdown when clicking the toggle
+											return;
+										} else if (index === 3) {
+											// Toggle the switch for Hide amount option
+											const toggleSwitch = item.querySelector(".toggle-switch");
+											const toggleCircle = item.querySelector(
+												".toggle-circle",
+											) as HTMLElement;
+
+											if (toggleSwitch) {
+												toggleSwitch.classList.toggle("active");
+												const isActive =
+													toggleSwitch.classList.contains("active");
+
+												if (isActive) {
+													toggleSwitch.setAttribute(
+														"style",
+														"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
+													);
+													toggleCircle.style.left = "20px";
+												} else {
+													toggleSwitch.setAttribute(
+														"style",
+														"position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;",
+													);
+													toggleCircle.style.left = "2px";
+												}
+
+												// Toggle the amount column visibility
+												toggleColumnVisibility(editor, "amount", isActive);
+
+												console.log(
+													"Hide amount toggled from item click:",
+													isActive,
+												);
+											}
+
+											// Don't close the dropdown when clicking the toggle
+											return;
+										} else {
+											console.log(`Option ${index + 1} selected`);
+											dropdown.parentNode?.removeChild(dropdown);
+										}
+									});
+								});
+
+								// Set initial toggle states based on current visibility
+								const toggleSwitches =
+									dropdown.querySelectorAll(".toggle-switch");
+
+								// Price toggle (index 0)
+								if (isPriceHidden && toggleSwitches[0]) {
+									toggleSwitches[0].classList.add("active");
+									toggleSwitches[0].setAttribute(
+										"style",
+										"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
+									);
+									const toggleCircle = toggleSwitches[0].querySelector(
+										".toggle-circle",
+									) as HTMLElement;
+									if (toggleCircle) {
+										toggleCircle.style.left = "20px";
+									}
 								}
-							},
-						});
 
-						// Add a context toolbar that appears when a quote table is selected
-						editor.ui.registry.addContextToolbar("quoteTableToolbar", {
-							predicate: (node) => {
-								// Check if the current node is inside a quote table
-								return !!editor.dom.getParent(node, ".quote-block");
-							},
-							items: "themepicker",
-							position: "selection",
-							scope: "node",
-						});
-
-						// Setup any existing quote tables when editor initializes
-						editor.on("init", () => {
-							const existingQuoteTables = editor.dom.select(".quote-block");
-							existingQuoteTables.forEach((table) => {
-								setupQuoteTable(editor, table);
-							});
-						});
-
-						// Setup new quote tables when content changes
-						editor.on("SetContent", () => {
-							const existingQuoteTables = editor.dom.select(".quote-block");
-							existingQuoteTables.forEach((table) => {
-								// Only setup tables that don't have event handlers yet
-								if (!table.getAttribute("data-initialized")) {
-									setupQuoteTable(editor, table);
-									table.setAttribute("data-initialized", "true");
+								// Quantity toggle (index 1)
+								if (isQuantityHidden && toggleSwitches[1]) {
+									toggleSwitches[1].classList.add("active");
+									toggleSwitches[1].setAttribute(
+										"style",
+										"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
+									);
+									const toggleCircle = toggleSwitches[1].querySelector(
+										".toggle-circle",
+									) as HTMLElement;
+									if (toggleCircle) {
+										toggleCircle.style.left = "20px";
+									}
 								}
-							});
+
+								// Discount toggle (index 2)
+								if (isDiscountHidden && toggleSwitches[2]) {
+									toggleSwitches[2].classList.add("active");
+									toggleSwitches[2].setAttribute(
+										"style",
+										"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
+									);
+									const toggleCircle = toggleSwitches[2].querySelector(
+										".toggle-circle",
+									) as HTMLElement;
+									if (toggleCircle) {
+										toggleCircle.style.left = "20px";
+									}
+								}
+
+								// Amount toggle (index 3)
+								if (isAmountHidden && toggleSwitches[3]) {
+									toggleSwitches[3].classList.add("active");
+									toggleSwitches[3].setAttribute(
+										"style",
+										"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
+									);
+									const toggleCircle = toggleSwitches[3].querySelector(
+										".toggle-circle",
+									) as HTMLElement;
+									if (toggleCircle) {
+										toggleCircle.style.left = "20px";
+									}
+								}
+							}
 						});
 					},
-					content_style: `
-						.add-product-btn:hover { background-color: #45a049; }
-						.edit-row-btn:hover { background-color: #1976D2; }
-						.delete-row-btn:hover { background-color: #d32f2f; }
-						.delete-table-btn:hover { background-color: #d32f2f; }
-						.column-visibility-btn:hover { background-color: #7B1FA2; }
-						.quote-row:hover { background-color: #f5f5f5; }
-						.quote-row:hover .row-actions { display: flex !important; }
-						.quote-title-editable:empty:before, .quote-description-editable:empty:before {
-							content: attr(data-placeholder);
-							color: #aaa;
-						}
-						.quote-title-editable[data-placeholder-visible]:before, .quote-description-editable[data-placeholder-visible]:before {
-							content: attr(data-placeholder);
-							color: #aaa;
-						}
-						.drag-handle:hover { background-color: rgba(0,0,0,0.05); border-radius: 4px; }
-						.product-mandatory::before { 
-							content: "*";
-							position: absolute;
-							left: -10px;
-							color: #f44336;
-							font-weight: bold;
-						}
-						.product-optional::before { 
-							content: "○";
-							position: absolute;
-							left: -10px;
-							color: #2196F3;
-							font-weight: bold;
-						}
-						.product-exclusive::before { 
-							content: "◉";
-							position: absolute;
-							left: -10px;
-							color: #FF9800;
-							font-weight: bold;
-						}
-						.quote-row {
-							position: relative;
-						}
-						.quote-header {
-							grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr;
-						}
-						.quote-row {
-							grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr;
-						}
-						
-						/* Dropdown Styles */
-						.dropdown-item:hover {
-							background-color: #f5f5f5;
-						}
-						.quote-options-btn:hover {
-							background-color: #6A1B9A;
-						}
-						.description-toggle-btn:hover {
-							background-color: #1976D2;
-						}
-						
-						/* Signature Block Styles */
-						.signature-block {
-							margin: 20px auto;
-							padding: 15px;
-							border: 1px solid #ddd;
-							border-radius: 8px;
-							background-color: #f9f9f9;
-							width: 30%;
-							user-select: none;
-							cursor: default;
-						}
-						
-						.signature-header {
-							margin-bottom: 15px;
-							padding-bottom: 10px;
-						}
-						
-						.signature-header h3 {
-							margin: 0;
-							font-size: 16px;
-							color: #333;
-						}
-						
-						.signature-user-selection {
-							margin-bottom: 0;
-						}
-						
-						.user-select-display {
-							width: 100%;
-							padding: 8px 12px;
-							border: 1px solid #ddd;
-							border-radius: 4px;
-							box-sizing: border-box;
-							cursor: pointer;
-							display: flex;
-							justify-content: space-between;
-							align-items: center;
-							background-color: white;
-						}
-						
-						.user-select-display:hover {
-							border-color: #2196F3;
-							background-color: #f9f9f9;
-						}
-						
-						.user-dropdown {
-							display: none;
-							position: absolute;
-							width: 100%;
-							max-height: 200px;
-							overflow-y: auto;
-							background: white;
-							border: 1px solid #ddd;
-							border-radius: 0 0 4px 4px;
-							z-index: 1000;
-							box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-							user-select: none;
-						}
-						
-						.user-option {
-							padding: 8px 12px;
-							cursor: pointer;
-							border-bottom: 1px solid #f0f0f0;
-						}
-						
-						.user-option:hover {
-							background-color: #f5f5f5;
-						}
-						
-						.signature-area {
-							margin-top: 20px;
-						}
-						
-						.signature-line {
-							border-bottom: 1px solid #333;
-							padding-bottom: 5px;
-							margin-bottom: 5px;
-							min-height: 40px;
-						}
-						
-						.signature-name {
-							font-weight: 500;
-							min-height: 20px;
-						}
-						
-						.signature-title {
-							font-size: 12px;
-							color: #666;
-							min-height: 16px;
-						}
-						.signature-date {
-							font-size: 12px;
-							color: #666;
-							margin-top: 10px;
-						}
-					`,
 				}}
-				initialValue="demo"
 			/>
 			<ProductDrawer
 				isOpen={isDrawerOpen}
