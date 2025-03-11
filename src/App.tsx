@@ -766,6 +766,7 @@ function App() {
 		// Calculate the grid template based on visible columns
 		let gridTemplate = "30px"; // Always show the drag handle column
 
+		console.log(visibility, "visibility");
 		if (visibility.productName) {
 			gridTemplate += " 3fr";
 		}
@@ -795,6 +796,32 @@ function App() {
 			const header = editor.dom.select(".quote-header", quoteTable)[0];
 			if (header) {
 				header.style.gridTemplateColumns = gridTemplate;
+
+				// Get all header cells
+				const headerCells = header.children;
+
+				// Hide/show specific columns in the header
+				// First cell (index 0) is empty for the drag handle
+				if (headerCells[1])
+					(headerCells[1] as HTMLElement).style.display = visibility.productName
+						? "block"
+						: "none"; // Product Name
+				if (headerCells[2])
+					(headerCells[2] as HTMLElement).style.display = visibility.quantity
+						? "block"
+						: "none"; // Quantity
+				if (headerCells[3])
+					(headerCells[3] as HTMLElement).style.display = visibility.discount
+						? "block"
+						: "none"; // Discount
+				if (headerCells[4])
+					(headerCells[4] as HTMLElement).style.display = visibility.price
+						? "block"
+						: "none"; // Price
+				if (headerCells[5])
+					(headerCells[5] as HTMLElement).style.display = visibility.amount
+						? "block"
+						: "none"; // Amount
 			}
 
 			// Update all rows in this table
@@ -804,10 +831,43 @@ function App() {
 				console.log(
 					`Updating ${rows.length} rows with grid template: ${gridTemplate}`,
 				);
+
 				rows.forEach((row) => {
 					row.style.gridTemplateColumns = gridTemplate;
+
+					// Skip empty row which has a different structure
+					if (row.classList.contains("empty-row")) return;
+
+					// Get all cells in this row
+					const cells = row.children;
+
+					// Hide/show specific columns in each row
+					// First cell (index 0) is for the drag handle or checkbox
+					if (cells[1])
+						(cells[1] as HTMLElement).style.display = visibility.productName
+							? "block"
+							: "none"; // Product Name
+					if (cells[2])
+						(cells[2] as HTMLElement).style.display = visibility.quantity
+							? "block"
+							: "none"; // Quantity
+					if (cells[3])
+						(cells[3] as HTMLElement).style.display = visibility.discount
+							? "block"
+							: "none"; // Discount
+					if (cells[4])
+						(cells[4] as HTMLElement).style.display = visibility.price
+							? "block"
+							: "none"; // Price
+					if (cells[5])
+						(cells[5] as HTMLElement).style.display = visibility.amount
+							? "block"
+							: "none"; // Amount
 				});
 			}
+
+			// Force TinyMCE to update its content
+			editor.fire("Change");
 		});
 	};
 
@@ -996,72 +1056,20 @@ function App() {
 									style="flex: 0.7; color: black; outline: none; padding: 4px 8px; border-bottom: 1px dashed #ddd; min-height: 24px; font-size: 14px;"
 									data-placeholder="Enter Section Name"
 								></div>
-								<div class="antd-dropdown-container" style="margin-left: 8px; position: relative;">
-								
-									<div class="antd-dropdown-menu" style="display: none; position: absolute; top: 100%; left: 0; background-color: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 1050; min-width: 220px; margin-top: 4px; left: 0;">
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Hide Price</span>
-											<button class="toggle-btn" data-option="price" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
-												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
-											</button>
-										</div>
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Hide Quantity</span>
-											<button class="toggle-btn" data-option="quantity" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
-												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
-											</button>
-										</div>
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Hide Discount</span>
-											<button class="toggle-btn" data-option="discount" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
-												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
-											</button>
-										</div>
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Hide Amount</span>
-											<button class="toggle-btn" data-option="amount" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
-												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
-											</button>
-										</div>
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Hide Tax</span>
-											<button class="toggle-btn" data-option="tax" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
-												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
-											</button>
-										</div>
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Hide Product Description</span>
-											<button class="toggle-btn" data-option="description" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
-												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
-											</button>
-										</div>
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Hide Product Images</span>
-											<button class="toggle-btn" data-option="images" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
-												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
-											</button>
-										</div>
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Set Thumbnail Size</span>
-										</div>
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Allow Editing Quantity</span>
-											<button class="toggle-btn" data-option="editQuantity" style="width: 40px; height: 20px; background-color: #e9e9e9; border: 1px solid #d9d9d9; border-radius: 10px; position: relative; cursor: pointer; outline: none;">
-												<span class="toggle-circle" style="width: 16px; height: 16px; background-color: white; border-radius: 50%; position: absolute; top: 1px; left: 2px; transition: left 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.4); border: 1px solid #d9d9d9;"></span>
-											</button>
-										</div>
-										<div class="antd-dropdown-item" style="padding: 8px 12px; cursor: pointer; font-size: 14px; transition: background 0.3s; display: flex; justify-content: space-between; align-items: center;">
-											<span>Set Quantity Limitations</span>
-										</div>
-									</div>
-								</div>
+								<button 
+									type="button"
+									class="description-toggle-btn" 
+									style="margin-left: 8px; background-color: #2196F3; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;"
+								>
+									Add description
+								</button>
 							</div>
 							<div class="quote-description-container" style="display: none; margin-top: 8px; width: 100%;">
-								<div 
+								<div
 									class="quote-description-editable" 
 									contenteditable="true" 
-									style="outline: none; padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-height: 24px; width: 100%; background: #fff; font-size: 14px; color: #333;"
-									data-placeholder="Enter description"
+									style="flex: 0.7; color: black; outline: none; padding: 4px 8px; border-bottom: 1px dashed #ddd; min-height: 24px; font-size: 14px;"
+									data-placeholder="Enter section description"
 								></div>
 							</div>
 						</div>
@@ -1153,41 +1161,6 @@ function App() {
 
 		// Calculate and update the summary
 		updateQuoteSummary(editor, quoteTable);
-
-		// Setup Description Toggle button
-		const descriptionToggleBtn = editor.dom.select(
-			".description-toggle-btn",
-			quoteTable,
-		)[0];
-		if (descriptionToggleBtn) {
-			descriptionToggleBtn.addEventListener("click", () => {
-				const titleSection = editor.dom.select(
-					".quote-title-section",
-					quoteTable,
-				)[0];
-				if (!titleSection) {
-					console.error("Title section not found");
-					return;
-				}
-
-				const descriptionContainer = titleSection?.querySelector(
-					".quote-description-container",
-				) as HTMLElement;
-				if (!descriptionContainer) {
-					console.error("Description container not found");
-					return;
-				}
-
-				const isVisible = descriptionContainer.style.display !== "none";
-				descriptionContainer.style.display = isVisible ? "none" : "block";
-				descriptionToggleBtn.textContent = isVisible
-					? "Add description"
-					: "Remove description";
-
-				// Force TinyMCE to update its content
-				editor.fire("Change");
-			});
-		}
 
 		// Setup Add Product button
 		const addProductBtn = editor.dom.select(".add-product-btn", quoteTable)[0];
@@ -2770,6 +2743,184 @@ function App() {
 							onAction: () => insertSignatureBlock(editor),
 						});
 
+						// Add a click handler for the description toggle button
+						editor.on("click", (e) => {
+							const target = e.target as HTMLElement;
+
+							// Handle description toggle button click
+							if (target.classList.contains("description-toggle-btn")) {
+								e.preventDefault();
+								e.stopPropagation();
+
+								// Find the quote table and description container
+								const quoteTable = editor.dom.getParent(target, ".quote-block");
+								if (!quoteTable) return;
+
+								const titleSection = editor.dom.select(
+									".quote-title-section",
+									quoteTable,
+								)[0];
+								if (!titleSection) return;
+
+								const descriptionContainer = titleSection.querySelector(
+									".quote-description-container",
+								) as HTMLElement;
+								if (!descriptionContainer) return;
+
+								// Toggle the description container visibility
+								const isVisible = descriptionContainer.style.display !== "none";
+								descriptionContainer.style.display = isVisible
+									? "none"
+									: "block";
+
+								// Update the button text
+								target.textContent = isVisible
+									? "Add description"
+									: "Hide description";
+
+								// Force TinyMCE to update its content
+								editor.fire("Change");
+							}
+							// Handle quote options button click
+							else if (
+								target.classList.contains("quote-options-btn") ||
+								target.closest(".quote-options-btn")
+							) {
+								e.preventDefault();
+								e.stopPropagation();
+
+								// Find the button and dropdown
+								const button = target.classList.contains("quote-options-btn")
+									? target
+									: (target.closest(".quote-options-btn") as HTMLElement);
+
+								const container = button.closest(".quote-options-container");
+								if (!container) return;
+
+								const dropdown = container.querySelector(
+									".quote-options-dropdown",
+								) as HTMLElement;
+								if (!dropdown) return;
+
+								// Toggle the dropdown visibility
+								const isVisible = dropdown.style.display !== "none";
+								dropdown.style.display = isVisible ? "none" : "block";
+
+								// Add a click outside listener to close the dropdown
+								if (!isVisible) {
+									const closeDropdown = (event: MouseEvent) => {
+										const clickTarget = event.target as HTMLElement;
+										if (
+											!dropdown.contains(clickTarget) &&
+											clickTarget !== button &&
+											!button.contains(clickTarget)
+										) {
+											dropdown.style.display = "none";
+											document.removeEventListener("click", closeDropdown);
+										}
+									};
+
+									// Use setTimeout to avoid immediate closing
+									setTimeout(() => {
+										document.addEventListener("click", closeDropdown);
+									}, 0);
+								}
+							}
+							// Handle dropdown item clicks
+							else if (
+								target.classList.contains("dropdown-item") ||
+								target.closest(".dropdown-item")
+							) {
+								e.preventDefault();
+								e.stopPropagation();
+
+								// Don't close the dropdown when clicking on an item
+								e.stopPropagation();
+							}
+							// Handle toggle button clicks
+							else if (
+								target.classList.contains("toggle-btn") ||
+								target.closest(".toggle-btn")
+							) {
+								e.preventDefault();
+								e.stopPropagation();
+
+								const toggleBtn = target.classList.contains("toggle-btn")
+									? (target as HTMLElement)
+									: (target.closest(".toggle-btn") as HTMLElement);
+
+								const option = toggleBtn.getAttribute("data-option");
+								if (!option) return;
+
+								// Toggle the button state
+								const isActive = toggleBtn.classList.contains("active");
+								const newState = !isActive;
+
+								if (isActive) {
+									toggleBtn.classList.remove("active");
+									toggleBtn.style.backgroundColor = "#e9e9e9";
+
+									// Move the circle to the left
+									const circle = toggleBtn.querySelector(
+										".toggle-circle",
+									) as HTMLElement;
+									if (circle) {
+										circle.style.left = "2px";
+									}
+								} else {
+									toggleBtn.classList.add("active");
+									toggleBtn.style.backgroundColor = "#4CAF50";
+
+									// Move the circle to the right
+									const circle = toggleBtn.querySelector(
+										".toggle-circle",
+									) as HTMLElement;
+									if (circle) {
+										circle.style.left = "22px";
+									}
+								}
+
+								// Get current column visibility - default all visible
+								const visibility: ColumnVisibility = {
+									productName: true,
+									quantity: true,
+									discount: true,
+									price: true,
+									amount: true,
+								};
+
+								// Update the specific column visibility based on the option
+								if (option === "price") {
+									visibility.price = !newState;
+								} else if (option === "quantity") {
+									visibility.quantity = !newState;
+								} else if (option === "discount") {
+									visibility.discount = !newState;
+								} else if (option === "amount") {
+									visibility.amount = !newState;
+								}
+
+								// Apply the column visibility changes directly
+								updateTableColumns(editor, visibility);
+
+								// Handle the specific option
+								console.log(`Toggle ${option}: ${newState}`);
+
+								// Don't close the dropdown
+								e.stopPropagation();
+							}
+							// Handle existing click handlers
+							else if (target.classList.contains("edit-row-btn")) {
+								e.preventDefault();
+								const rowId = target.getAttribute("data-row-id");
+								if (rowId) handleEditClick(editor, rowId);
+							} else if (target.classList.contains("delete-row-btn")) {
+								e.preventDefault();
+								const rowId = target.getAttribute("data-row-id");
+								if (rowId) handleDeleteClick(editor, rowId);
+							}
+						});
+
 						// Register a custom theme color picker button
 						editor.ui.registry.addButton("themepicker", {
 							text: "Theme Color",
@@ -2828,19 +2979,6 @@ function App() {
 							items: "themepicker",
 							position: "selection",
 							scope: "node",
-						});
-
-						editor.on("click", (e) => {
-							const target = e.target as HTMLElement;
-							if (target.classList.contains("edit-row-btn")) {
-								e.preventDefault();
-								const rowId = target.getAttribute("data-row-id");
-								if (rowId) handleEditClick(editor, rowId);
-							} else if (target.classList.contains("delete-row-btn")) {
-								e.preventDefault();
-								const rowId = target.getAttribute("data-row-id");
-								if (rowId) handleDeleteClick(editor, rowId);
-							}
 						});
 
 						// Setup any existing quote tables when editor initializes
@@ -2909,6 +3047,17 @@ function App() {
 						}
 						.quote-row {
 							grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr;
+						}
+						
+						/* Dropdown Styles */
+						.dropdown-item:hover {
+							background-color: #f5f5f5;
+						}
+						.quote-options-btn:hover {
+							background-color: #6A1B9A;
+						}
+						.description-toggle-btn:hover {
+							background-color: #1976D2;
 						}
 						
 						/* Signature Block Styles */
