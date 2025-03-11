@@ -1,9 +1,7 @@
 import { Editor } from "@tinymce/tinymce-react";
 import { Editor as TinyMCEEditor } from "tinymce";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
-// Import the toggle price function
-import { togglePriceColumn } from "./toggle-price";
 
 interface ProductFormData {
 	productName: string;
@@ -2703,25 +2701,6 @@ function App() {
 
 			// Use the existing handleAddProduct function
 			handleAddProduct(productData);
-		}
-	};
-
-	const togglePriceColumn = (editor: TinyMCEEditor, isHidden: boolean) => {
-		const quoteTable = editor.dom.select(".quote-table")[0];
-		if (quoteTable) {
-			// Create visibility object
-			const visibility: ColumnVisibility = {
-				productName: true,
-				quantity: true,
-				discount: true,
-				price: !isHidden, // Hide/show price based on parameter
-				amount: true,
-			};
-
-			// Update table columns
-			updateTableColumns(editor, visibility);
-
-			console.log(`Price column ${isHidden ? "hidden" : "shown"}`);
 		}
 	};
 
