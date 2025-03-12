@@ -230,6 +230,175 @@ const mockUsers: User[] = [
 	},
 ];
 
+// Define saved block interface
+interface SavedBlock {
+	id: string;
+	name: string;
+	content: string;
+}
+
+// Sample saved blocks data
+const SAMPLE_SAVED_BLOCKS: SavedBlock[] = [
+	{
+		id: "1",
+		name: "Standard Disclaimer",
+		content:
+			"<p>This quote is valid for 30 days from the date of issue. All prices are subject to change without notice. Payment terms are net 30 days from the date of invoice.</p>",
+	},
+	{
+		id: "2",
+		name: "Terms and Conditions",
+		content:
+			"<p>By accepting this quote, you agree to our standard terms and conditions. Delivery timeframes are estimates only and subject to change. Cancellation fees may apply for custom orders.</p>",
+	},
+	{
+		id: "3",
+		name: "Support Information",
+		content:
+			"<p>All products include our standard 12-month warranty and technical support during business hours. Extended support plans are available for purchase separately.</p>",
+	},
+	{
+		id: "4",
+		name: "Shipping Notice",
+		content:
+			"<p>Shipping costs are not included in this quote unless explicitly stated. Delivery times may vary based on product availability and shipping destination.</p>",
+	},
+	{
+		id: "5",
+		name: "Quote Table with Sample Product",
+		content: `
+			<div class="quote-block" contenteditable="false" style="user-select: none; width: 681px;" draggable="false" data-product-selection="all-optional">
+				<div class="quote-table" style="background: linear-gradient(rgb(207, 231, 253), rgb(255, 255, 255) 95px);">
+					<div class="quote-title-section" style="padding: 16px; border-bottom: 1px solid #eee;">
+						<div>
+							<div style="display: flex; align-items: center; margin-bottom: 8px;">
+								<div 
+									class="quote-title-editable" 
+									contenteditable="true" 
+									style="flex: 0.7; color: black; outline: none; padding: 4px 8px; border-bottom: 1px dashed #ddd; min-height: 24px; font-size: 14px;"
+									data-placeholder="Enter Section Name"
+								>Sample Quote</div>
+								<button 
+									type="button"
+									class="description-toggle-btn" 
+									style="margin-left: 8px; background-color: #2196F3; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;"
+								>
+									Add description
+								</button>
+								<button 
+									type="button"
+									class="dropdown-btn" 
+									style="margin-left: 8px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 12px;"
+								>
+									Options ▼
+								</button>
+							</div>
+							<div class="quote-description-container" style="display: none; margin-top: 8px; width: 100%;">
+								<div
+									class="quote-description-editable" 
+									contenteditable="true" 
+									style="flex: 0.7; color: black; outline: none; padding: 4px 8px; border-bottom: 1px dashed #ddd; min-height: 24px; font-size: 14px;"
+									data-placeholder="Enter section description"
+								></div>
+							</div>
+						</div>
+					</div>
+					<div class="quote-header" style="background: #fff; padding: 12px; 1px solid #eee; display: grid; grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr; gap: 12px;">
+						<div></div>
+						<div style="font-weight: 600; color: #333;">Product Name</div>
+						<div style="font-weight: 600; color: #333; text-align: center;">Quantity</div>
+						<div style="font-weight: 600; color: #333; text-align: center;">Discount (%)</div>
+						<div style="font-weight: 600; color: #333; text-align: right;">Price</div>
+						<div style="font-weight: 600; color: #333; text-align: right;">Amount</div>
+					</div>
+					<div id="quote-body" class="quote-body" style="padding: 0 12px; background: #fff;">
+						<div class="quote-row" data-row-id="sample-product-1" style="display: grid; grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr; gap: 12px; padding: 12px; border-bottom: 1px solid #eee; position: relative; align-items: center;" draggable="true">
+							<div class="drag-handle" style="cursor: grab; display: flex; justify-content: center; align-items: center;">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M8 6H21M8 12H21M8 18H21M3 6H3.01M3 12H3.01M3 18H3.01" stroke="#888" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</div>
+							<div style="display: flex; flex-direction: column; gap: 4px;">
+								<div class="product-name" style="font-weight: 500; color: #333;">Premium Widget Pro</div>
+								<div class="product-description" style="font-size: 12px; color: #666;">High-quality widget with advanced features and premium finish</div>
+							</div>
+							<div class="editable-cell quantity-cell" style="color: #333; text-align: center;" contenteditable="true" data-original-value="2" data-field="quantity">2</div>
+							<div class="editable-cell discount-cell" style="color: #333; text-align: center;" contenteditable="true" data-original-value="10" data-field="discount">10%</div>
+							<div class="editable-cell price-cell" style="color: #333; text-align: right;" contenteditable="true" data-original-value="199.99" data-field="price">$199.99</div>
+							<div class="amount-cell" style="text-align: right; font-weight: 500;">$359.98</div>
+							<div class="row-actions" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); display: none;">
+								<button class="three-dots-btn" style="width: 30px; height: 30px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;" data-row-id="sample-product-1">
+									<div style="width: 18px; height: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px;">
+										<div style="width: 4px; height: 4px; border-radius: 50%; background: #333;"></div>
+										<div style="width: 4px; height: 4px; border-radius: 50%; background: #333;"></div>
+										<div style="width: 4px; height: 4px; border-radius: 50%; background: #333;"></div>
+									</div>
+								</button>
+								<div class="dropdown-menu" style="display: none; position: absolute; right: 0; top: 100%; background: white; border: 1px solid #eee; border-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); z-index: 1000; min-width: 120px;">
+									<div class="dropdown-item edit-row-btn" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-row-id="sample-product-1">
+										<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+											<path d="M16.4745 5.40768L18.5917 7.52483M17.8358 3.54106L11.6002 9.77661C11.3242 10.0526 11.1382 10.4001 11.0621 10.7785L10.5 14L13.7215 13.4379C14.0999 13.3618 14.4474 13.1758 14.7234 12.8998L20.9589 6.66421C21.2821 6.34106 21.4637 5.91017 21.4637 5.46106C21.4637 5.01195 21.2821 4.58106 20.9589 4.25791L19.7419 3.04106C19.4188 2.71791 18.9879 2.5363 18.5388 2.5363C18.0897 2.5363 17.6588 2.71791 17.3356 3.04106L17.8358 3.54106Z" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+											<path d="M19 15V18C19 18.5304 18.7893 19.0391 18.4142 19.4142C18.0391 19.7893 17.5304 20 17 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18V7C4 6.46957 4.21071 5.96086 4.58579 5.58579C4.96086 5.21071 5.46957 5 6 5H9" stroke="#2196F3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+										</svg>
+										<span>Edit</span>
+									</div>
+									<div class="dropdown-item delete-row-btn" style="padding: 8px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-row-id="sample-product-1">
+										<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+											<path d="M3 6H5H21" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+											<path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+											<path d="M10 11V17" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+											<path d="M14 11V17" stroke="#f44336" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+										</svg>
+										<span>Delete</span>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="quote-row empty-row" style="display: grid; grid-template-columns: 30px 3fr 1fr 1fr 1fr 1fr; gap: 12px; padding: 12px; border-bottom: 1px solid #eee; position: relative; cursor: pointer; min-height: 50px; align-items: center; justify-content: center;" draggable="false">
+							<div style="grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; gap: 8px;">
+								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+									<path d="M12 5V19M5 12H19" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+								<span style="color: #4CAF50; font-weight: 500;">Click to Add Product</span>
+							</div>
+						</div>
+					</div>
+					<div class="quote-summary" style="padding: 16px; border-top: 1px solid #eee; background: #fff;">
+						<div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+							<div style="width: 120px; font-weight: 600; color: #333; text-align: right;">Subtotal:</div>
+							<div style="width: 120px; color: #333; text-align: right; margin-left: 16px;">$359.98</div>
+						</div>
+						<div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+							<div style="width: 120px; font-weight: 600; color: #333; text-align: right;">
+								Tax (<span class="tax-rate-value">10</span>%):
+								<button class="edit-tax-btn" style="background: none; border: none; color: #2196F3; cursor: pointer; font-size: 12px; padding: 0 4px;">edit</button>
+							</div>
+							<div style="width: 120px; color: #333; text-align: right; margin-left: 16px;">$36.00</div>
+						</div>
+						<div style="display: flex; justify-content: flex-end; margin-bottom: 8px;">
+							<div style="width: 120px; font-weight: 600; color: #333; text-align: right; font-size: 18px;">Total:</div>
+							<div style="width: 120px; color: #333; text-align: right; margin-left: 16px; font-weight: 700; font-size: 18px;">$395.98</div>
+						</div>
+					</div>
+					<div class="quote-footer" style="padding: 12px; border-top: 1px solid #eee; display: flex; gap: 12px;">
+						<div style="flex: 1; display: flex; gap: 12px; flex-wrap;">
+							<button type="button" class="add-product-btn" style="background-color: #4CAF50; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+								+ Add Product
+							</button>
+							<button type="button" class="import-products-btn" style="background-color: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+								Import Products
+							</button>
+						</div>
+						<button type="button" class="delete-table-btn" style="background-color: #f44336; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+							Delete Quote Table
+						</button>
+					</div>
+				</div>
+			</div>
+		`,
+	},
+];
+
 function ProductListDrawer({
 	isOpen,
 	onClose,
@@ -748,16 +917,188 @@ function ProductDrawer({
 	);
 }
 
+function SavedBlocksModal({
+	isOpen,
+	onClose,
+	onInsert,
+}: {
+	isOpen: boolean;
+	onClose: () => void;
+	onInsert: (content: string) => void;
+}) {
+	const [searchTerm, setSearchTerm] = useState("");
+
+	const filteredBlocks = SAMPLE_SAVED_BLOCKS.filter((block) =>
+		block.name.toLowerCase().includes(searchTerm.toLowerCase()),
+	);
+
+	if (!isOpen) return null;
+
+	return (
+		<div
+			className="modal-overlay"
+			style={{
+				position: "fixed",
+				top: 0,
+				right: 0,
+				bottom: 0,
+				left: 0,
+				backgroundColor: "rgba(0, 0, 0, 0.5)",
+				display: "flex",
+				justifyContent: "center",
+				alignItems: "center",
+				zIndex: 1000,
+			}}
+		>
+			<div
+				className="modal"
+				style={{
+					width: "600px",
+					backgroundColor: "white",
+					borderRadius: "8px",
+					display: "flex",
+					flexDirection: "column",
+					boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+					maxHeight: "80vh",
+				}}
+			>
+				<div
+					style={{
+						padding: "24px 24px 0 24px",
+					}}
+				>
+					<div
+						style={{
+							display: "flex",
+							justifyContent: "space-between",
+							alignItems: "center",
+							marginBottom: "24px",
+						}}
+					>
+						<h2 style={{ margin: 0 }}>Saved Blocks</h2>
+						<button
+							onClick={onClose}
+							style={{
+								background: "none",
+								border: "none",
+								fontSize: "24px",
+								cursor: "pointer",
+								padding: "4px 8px",
+							}}
+						>
+							×
+						</button>
+					</div>
+
+					<div style={{ marginBottom: "16px" }}>
+						<input
+							type="text"
+							placeholder="Search blocks..."
+							value={searchTerm}
+							onChange={(e) => setSearchTerm(e.target.value)}
+							style={{
+								width: "100%",
+								padding: "8px 12px",
+								border: "1px solid #ddd",
+								borderRadius: "4px",
+								fontSize: "14px",
+							}}
+						/>
+					</div>
+				</div>
+
+				<div
+					style={{
+						padding: "0 24px 24px 24px",
+						overflowY: "auto",
+						flex: 1,
+					}}
+				>
+					{filteredBlocks.length === 0 ? (
+						<p style={{ textAlign: "center", color: "#666" }}>
+							No saved blocks found
+						</p>
+					) : (
+						<div
+							style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+						>
+							{filteredBlocks.map((block) => (
+								<div
+									key={block.id}
+									style={{
+										padding: "16px",
+										border: "1px solid #eee",
+										borderRadius: "4px",
+										cursor: "pointer",
+										transition: "background-color 0.2s",
+										backgroundColor: "#f9f9f9",
+									}}
+									onClick={() => onInsert(block.content)}
+									onMouseOver={(e) => {
+										e.currentTarget.style.backgroundColor = "#f0f0f0";
+									}}
+									onMouseOut={(e) => {
+										e.currentTarget.style.backgroundColor = "#f9f9f9";
+									}}
+								>
+									<h3 style={{ margin: "0 0 8px 0", fontSize: "16px" }}>
+										{block.name}
+									</h3>
+									<div
+										style={{
+											fontSize: "13px",
+											color: "#666",
+											maxHeight: "60px",
+											overflow: "hidden",
+											textOverflow: "ellipsis",
+										}}
+									>
+										{block.content.replace(/<[^>]*>/g, "").substring(0, 100)}
+										{block.content.length > 100 ? "..." : ""}
+									</div>
+								</div>
+							))}
+						</div>
+					)}
+				</div>
+
+				<div
+					style={{
+						padding: "16px 24px",
+						borderTop: "1px solid #eee",
+						display: "flex",
+						justifyContent: "flex-end",
+					}}
+				>
+					<button
+						onClick={onClose}
+						style={{
+							padding: "8px 16px",
+							backgroundColor: "#f5f5f5",
+							border: "1px solid #ddd",
+							borderRadius: "4px",
+							cursor: "pointer",
+							marginRight: "8px",
+						}}
+					>
+						Cancel
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+}
+
 function App() {
-	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-	const [editingProduct, setEditingProduct] = useState<ProductFormData>();
-	const [isProductListOpen, setIsProductListOpen] = useState(false);
 	const [currentEditor, setCurrentEditor] = useState<TinyMCEEditor | null>(
 		null,
 	);
-	const [productSelectionType] =
-		useState<ProductSelectionType>("all-mandatory");
-	const [taxRate, setTaxRate] = useState<number>(10); // Default tax rate of 10%
+	const [isProductDrawerOpen, setIsProductDrawerOpen] = useState(false);
+	const [isProductListOpen, setIsProductListOpen] = useState(false);
+	const [isSavedBlocksOpen, setIsSavedBlocksOpen] = useState(false);
+	const [editingProduct, setEditingProduct] = useState<
+		ProductFormData | undefined
+	>(undefined);
 	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({
 		productName: true,
 		quantity: true,
@@ -765,6 +1106,8 @@ function App() {
 		price: true,
 		amount: true,
 	});
+	const [productSelectionType] = useState<ProductSelectionType>("all-optional");
+	const [taxRate, setTaxRate] = useState<number>(10); // Default tax rate of 10%
 
 	const updateTableColumns = (
 		editor: TinyMCEEditor,
@@ -1173,7 +1516,7 @@ function App() {
 		const addProductBtn = editor.dom.select(".add-product-btn", quoteTable)[0];
 		if (addProductBtn) {
 			addProductBtn.addEventListener("click", () => {
-				setIsDrawerOpen(true);
+				setIsProductDrawerOpen(true);
 			});
 		}
 
@@ -2106,7 +2449,7 @@ function App() {
 			}
 
 			setEditingProduct(productData);
-			setIsDrawerOpen(true);
+			setIsProductDrawerOpen(true);
 		}
 	};
 
@@ -2601,7 +2944,7 @@ function App() {
 			}
 
 			// Open drawer to add new product
-			setIsDrawerOpen(true);
+			setIsProductDrawerOpen(true);
 		});
 
 		dropdown.appendChild(addNewOption);
@@ -2846,7 +3189,7 @@ function App() {
 					toolbar:
 						"undo redo | blocks | " +
 						"bold italic forecolor | alignleft aligncenter " +
-						"removeformat | help | insertquotetable insertsignatureblock",
+						"removeformat | help | insertquotetable insertsignatureblock savedblocks",
 					setup: (editor) => {
 						setCurrentEditor(editor);
 
@@ -2858,6 +3201,11 @@ function App() {
 						editor.ui.registry.addButton("insertsignatureblock", {
 							text: "Add Signature Block",
 							onAction: () => insertSignatureBlock(editor),
+						});
+
+						editor.ui.registry.addButton("savedblocks", {
+							text: "Saved Blocks",
+							onAction: () => setIsSavedBlocksOpen(true),
 						});
 
 						// Add a click handler for the description toggle button
@@ -3307,9 +3655,9 @@ function App() {
 				}}
 			/>
 			<ProductDrawer
-				isOpen={isDrawerOpen}
+				isOpen={isProductDrawerOpen}
 				onClose={() => {
-					setIsDrawerOpen(false);
+					setIsProductDrawerOpen(false);
 					setEditingProduct(undefined);
 				}}
 				onSubmit={handleAddProduct}
@@ -3319,6 +3667,37 @@ function App() {
 				isOpen={isProductListOpen}
 				onClose={() => setIsProductListOpen(false)}
 				onImport={handleImportProducts}
+			/>
+			<SavedBlocksModal
+				isOpen={isSavedBlocksOpen}
+				onClose={() => setIsSavedBlocksOpen(false)}
+				onInsert={(content) => {
+					// Insert the selected block into the editor
+					currentEditor?.insertContent(content + "<p>&nbsp;</p>");
+
+					// If the content is a quote table, set it up properly
+					if (content.includes('class="quote-block"')) {
+						// Find the newly inserted quote table
+						const quoteTables = currentEditor?.dom.select(".quote-block");
+						if (quoteTables && quoteTables.length > 0) {
+							const newQuoteTable = quoteTables[quoteTables.length - 1]; // Get the last one (newly inserted)
+
+							// Setup the newly inserted quote table
+							setupQuoteTable(currentEditor!, newQuoteTable);
+
+							// Move cursor to the paragraph after the quote table
+							const paragraphAfter = currentEditor?.dom.getNext(
+								newQuoteTable,
+								"p",
+							);
+							if (paragraphAfter) {
+								currentEditor?.selection.setCursorLocation(paragraphAfter, 0);
+							}
+						}
+					}
+
+					setIsSavedBlocksOpen(false);
+				}}
 			/>
 		</div>
 	);
