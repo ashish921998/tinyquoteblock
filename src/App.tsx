@@ -2606,7 +2606,7 @@ function App() {
 							${mockUsers
 								.map(
 									(user) => `
-								<div class="user-option" data-user-id="${user.id}" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #f0f0f0;">
+								<div class="user-option" data-user-id="${user.id}" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;">
 									<div style="font-weight: 500;">${user.name}</div>
 									<div style="font-size: 12px; color: #666;">${user.email} - ${user.role}</div>
 								</div>
@@ -2616,30 +2616,233 @@ function App() {
 						</div>
 					</div>
 				</div>
+				
+				<div style="margin-top: 15px;">
+					<div style="display: block; margin-bottom: 5px; font-weight: 500;">Signature</div>
+					<div class="signature-area" style="min-height: 80px; border: 1px dashed #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-style: italic;" contenteditable="true">
+						Click to sign...
+					</div>
+				</div>
 			</div>
 		`;
 
-		// Insert the signature block at the current cursor position with a paragraph after it
-		editor.insertContent(signatureBlockHtml + "<p>&nbsp;</p>");
-
-		// Find the newly inserted signature block
-		const signatureBlock = editor.dom.get(signatureBlockId);
-
-		// Setup event handlers for the signature block
-		setTimeout(() => {
-			setupSignatureBlock(editor, signatureBlockId);
-
-			// Move cursor to the paragraph after the signature block
-			if (signatureBlock) {
-				const paragraphAfter = editor.dom.getNext(signatureBlock, "p");
-				if (paragraphAfter) {
-					editor.selection.setCursorLocation(paragraphAfter, 0);
-				}
-			}
-		}, 100);
+		editor.insertContent(signatureBlockHtml);
+		setupSignatureBlock(editor, signatureBlockId);
 	};
 
-	// Function to setup event handlers for a signature block
+	// Function to insert and configure print headers and footers
+	const insertPrintHeaderFooter = (editor: TinyMCEEditor) => {
+		// Create a unique ID for this header/footer configuration
+		const configId = `print-config-${Date.now()}`;
+
+		// Create the HTML for the header/footer configuration
+		const configHtml = `
+			<div id="${configId}" class="print-header-footer-config" contenteditable="false" style="margin: 20px auto; padding: 15px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9; width: 80%;">
+				<div class="config-header" style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+					<h3 style="margin: 0; font-size: 16px; color: #333;">Print Headers & Footers Configuration</h3>
+					<p style="margin: 5px 0 0; font-size: 12px; color: #666;">Configure what appears in the header and footer when printing this document</p>
+				</div>
+				
+				<div class="header-config" style="margin-bottom: 20px;">
+					<div style="display: block; margin-bottom: 5px; font-weight: 500;">Header Content</div>
+					<div class="header-editor" style="min-height: 60px; border: 1px solid #ccc; border-radius: 4px; padding: 8px; background-color: white;" contenteditable="true">
+						<p style="text-align: center; margin: 0;">Your Company Name</p>
+					</div>
+				</div>
+				
+				<div class="footer-config">
+					<div style="display: block; margin-bottom: 5px; font-weight: 500;">Footer Content</div>
+					<div class="footer-editor" style="min-height: 60px; border: 1px solid #ccc; border-radius: 4px; padding: 8px; background-color: white;" contenteditable="true">
+						<p style="text-align: center; margin: 0;">Page <span class="page-number">{page}</span> of <span class="page-count">{pages}</span></p>
+					</div>
+					<p style="margin: 5px 0 0; font-size: 12px; color: #666;">Use {page} for current page number and {pages} for total pages</p>
+				</div>
+				
+				<div class="config-actions" style="margin-top: 15px; display: flex; justify-content: flex-end;">
+					<button class="apply-print-config" style="padding: 6px 12px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Apply Configuration</button>
+				</div>
+			</div>
+		`;
+
+		editor.insertContent(configHtml);
+		setupPrintHeaderFooter(editor, configId);
+	};
+
+	// Function to set up the print header/footer configuration
+	const setupPrintHeaderFooter = (editor: TinyMCEEditor, configId: string) => {
+		const configBlock = editor.dom.get(configId);
+		if (!configBlock) return;
+
+		// Find the apply button
+		const applyButton = editor.dom.select(
+			".apply-print-config",
+			configBlock,
+		)[0];
+		if (!applyButton) return;
+
+		// Add click handler for the apply button
+		applyButton.addEventListener("mousedown", (e) => {
+			e.preventDefault();
+			e.stopPropagation();
+
+			// Get header and footer content
+			const headerEditor = editor.dom.select(".header-editor", configBlock)[0];
+			const footerEditor = editor.dom.select(".footer-editor", configBlock)[0];
+
+			if (headerEditor && footerEditor) {
+				const headerContent = headerEditor.innerHTML;
+				const footerContent = footerEditor.innerHTML;
+
+				// Store the header and footer content in data attributes on the body
+				editor.getBody().setAttribute("data-print-header", headerContent);
+				editor.getBody().setAttribute("data-print-footer", footerContent);
+
+				// Add or update the print styles
+				updatePrintStyles(editor);
+
+				// Notify the user
+				editor.notificationManager.open({
+					text: "Print header and footer configuration applied",
+					type: "success",
+					timeout: 3000,
+				});
+			}
+		});
+	};
+
+	// Function to update the print styles
+	const updatePrintStyles = (editor: TinyMCEEditor) => {
+		// Remove any existing print style element
+		const existingStyle = editor.dom.get("mce-print-header-footer-styles");
+		if (existingStyle) {
+			existingStyle.parentNode?.removeChild(existingStyle);
+		}
+
+		// Create a new style element
+		const styleElement = editor.dom.create("style", {
+			id: "mce-print-header-footer-styles",
+			type: "text/css",
+		});
+
+		// Add the CSS for headers and footers
+		const css = `
+			@media print {
+				@page {
+					margin: 2cm;
+				}
+				
+				body::before {
+					content: "";
+					display: block;
+					height: 1cm;
+					margin-bottom: 1cm;
+				}
+				
+				body::after {
+					content: "";
+					display: block;
+					height: 1cm;
+					margin-top: 1cm;
+				}
+				
+				.mce-print-header {
+					position: fixed;
+					top: 0;
+					left: 0;
+					right: 0;
+					height: auto;
+					padding: 0.5cm;
+					text-align: center;
+					border-bottom: 1px solid #ddd;
+					background-color: white;
+				}
+				
+				.mce-print-footer {
+					position: fixed;
+					bottom: 0;
+					left: 0;
+					right: 0;
+					height: auto;
+					padding: 0.5cm;
+					text-align: center;
+					border-top: 1px solid #ddd;
+					background-color: white;
+				}
+				
+				/* Hide the configuration block when printing */
+				.print-header-footer-config {
+					display: none !important;
+				}
+			}
+		`;
+
+		styleElement.innerHTML = css;
+
+		// Add the style element to the head
+		editor.dom.doc.head.appendChild(styleElement);
+
+		// Create a function to inject the header and footer when printing
+		const injectHeaderFooterScript = `
+			(function() {
+				const originalPrint = window.print;
+				
+				window.print = function() {
+					// Get the header and footer content
+					const headerContent = document.body.getAttribute('data-print-header');
+					const footerContent = document.body.getAttribute('data-print-footer');
+					
+					if (headerContent || footerContent) {
+						// Create header element if there's content
+						if (headerContent) {
+							const headerElement = document.createElement('div');
+							headerElement.className = 'mce-print-header';
+							headerElement.innerHTML = headerContent;
+							document.body.appendChild(headerElement);
+						}
+						
+						// Create footer element if there's content
+						if (footerContent) {
+							const footerElement = document.createElement('div');
+							footerElement.className = 'mce-print-footer';
+							footerElement.innerHTML = footerContent;
+							
+							// Replace page number placeholders
+							footerElement.innerHTML = footerElement.innerHTML.replace(/{page}/g, '1').replace(/{pages}/g, '1');
+							
+							document.body.appendChild(footerElement);
+						}
+						
+						// Call the original print function
+						originalPrint.call(window);
+						
+						// Remove the header and footer elements after printing
+						const headerElement = document.querySelector('.mce-print-header');
+						const footerElement = document.querySelector('.mce-print-footer');
+						
+						if (headerElement) {
+							headerElement.parentNode.removeChild(headerElement);
+						}
+						
+						if (footerElement) {
+							footerElement.parentNode.removeChild(footerElement);
+						}
+					} else {
+						// No header or footer, just print normally
+						originalPrint.call(window);
+					}
+				};
+			})();
+		`;
+
+		// Add the script to the editor
+		const scriptElement = editor.dom.create("script", {
+			type: "text/javascript",
+		});
+
+		scriptElement.innerHTML = injectHeaderFooterScript;
+		editor.dom.doc.head.appendChild(scriptElement);
+	};
+
 	const setupSignatureBlock = (
 		editor: TinyMCEEditor,
 		signatureBlockId: string,
@@ -3189,7 +3392,7 @@ function App() {
 					toolbar:
 						"undo redo | blocks | " +
 						"bold italic forecolor | alignleft aligncenter " +
-						"removeformat | help | insertquotetable insertsignatureblock savedblocks",
+						"removeformat | help | insertquotetable insertsignatureblock printheaderfooter savedblocks",
 					setup: (editor) => {
 						setCurrentEditor(editor);
 
@@ -3201,6 +3404,11 @@ function App() {
 						editor.ui.registry.addButton("insertsignatureblock", {
 							text: "Add Signature Block",
 							onAction: () => insertSignatureBlock(editor),
+						});
+
+						editor.ui.registry.addButton("printheaderfooter", {
+							text: "Print Headers & Footers",
+							onAction: () => insertPrintHeaderFooter(editor),
 						});
 
 						editor.ui.registry.addButton("savedblocks", {
