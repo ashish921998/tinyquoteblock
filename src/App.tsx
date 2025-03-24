@@ -1108,6 +1108,7 @@ function App() {
 	});
 	const [productSelectionType] = useState<ProductSelectionType>("all-optional");
 	const [taxRate, setTaxRate] = useState<number>(10); // Default tax rate of 10%
+	const [isReadOnly, setIsReadOnly] = useState(false);
 
 	const updateTableColumns = (
 		editor: TinyMCEEditor,
@@ -2080,6 +2081,24 @@ function App() {
 					} else {
 						productNameCell.appendChild(checkbox);
 					}
+
+					// Add change event listener that works in both normal and read-only modes
+					checkbox.addEventListener("change", (e) => {
+						e.stopPropagation();
+						const target = e.target as HTMLInputElement;
+
+						// Update row opacity
+						row.style.opacity = target.checked ? "1" : "0.5";
+
+						// Prevent editor from marking content as dirty in read-only mode
+						const isReadOnly = editor.mode.get() === "readonly";
+						if (!isReadOnly) {
+							editor.fire("Change");
+						}
+
+						// Always update the quote summary
+						updateQuoteSummary(editor, quoteTable);
+					});
 				}
 			} else if (selectionType === "only-one") {
 				row.classList.add("product-exclusive");
@@ -3417,7 +3436,7 @@ function App() {
 				tinymceScriptSrc={"/tinymce/tinymce.min.js"}
 				init={{
 					height: 1000,
-					width: 900,
+					width: 1300,
 					content_css: "/css/quote-styles.css",
 					menubar: true,
 					plugins: [
@@ -3442,9 +3461,48 @@ function App() {
 					toolbar:
 						"undo redo | blocks | " +
 						"bold italic forecolor | alignleft aligncenter " +
-						"removeformat | help | insertquotetable insertsignatureblock printheaderfooter savedblocks",
+						"removeformat | help | insertquotetable insertsignatureblock printheaderfooter savedblocks | readonlyToggle",
 					setup: (editor) => {
 						setCurrentEditor(editor);
+
+						// Add read-only toggle button
+						editor.ui.registry.addToggleButton("readonlyToggle", {
+							icon: "lock",
+							tooltip: "Toggle read-only mode",
+							onAction: () => {
+								const newState = !isReadOnly;
+								setIsReadOnly(newState);
+
+								// Toggle editor read-only state
+								editor.mode.set(newState ? "readonly" : "design");
+
+								// Add/remove visual indicator
+								const editorContainer = editor.getContainer();
+								if (editorContainer) {
+									editorContainer.classList.toggle("readonly-mode", newState);
+								}
+
+								// Handle checkbox interaction
+								const checkboxes = editor.dom.select(".product-checkbox");
+								checkboxes.forEach((checkbox) => {
+									if (checkbox instanceof HTMLInputElement) {
+										checkbox.disabled = newState ? false : true;
+									}
+								});
+
+								// Keep toolbar buttons interactive
+								const toolbar = editorContainer?.querySelector(
+									".tox-toolbar__primary",
+								) as HTMLElement;
+								if (toolbar) {
+									toolbar.style.pointerEvents = "auto";
+								}
+							},
+							onSetup: (api) => {
+								api.setActive(isReadOnly);
+								return () => {};
+							},
+						});
 
 						// Prevent pasting quote tables
 						editor.on("paste", (e) => {
@@ -3667,143 +3725,6 @@ function App() {
 
 									// Add click handler
 									item.addEventListener("click", () => {
-										// Handle the selected option without alerts
-										// if (index === 0) {
-										// 	// Toggle the switch for Hide price option
-										// 	const toggleSwitch = item.querySelector(".toggle-switch");
-										// 	const toggleCircle = item.querySelector(
-										// 		".toggle-circle",
-										// 	) as HTMLElement;
-
-										// 	if (toggleSwitch) {
-										// 		toggleSwitch.classList.toggle("active");
-										// 		const isActive =
-										// 			toggleSwitch.classList.contains("active");
-
-										// 		if (isActive) {
-										// 			toggleSwitch.setAttribute(
-										// 				"style",
-										// 				"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
-										// 			);
-										// 			toggleCircle.style.left = "20px";
-										// 		} else {
-										// 			toggleSwitch.setAttribute(
-										// 				"style",
-										// 				"position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;",
-										// 			);
-										// 			toggleCircle.style.left = "2px";
-										// 		}
-
-										// 		// Toggle the price column visibility
-										// 		toggleColumnVisibility(editor, "price", isActive);
-
-										// 		console.log(
-										// 			"Hide price toggled from item click:",
-										// 			isActive,
-										// 		);
-										// 	}
-
-										// 	// Don't close the dropdown when clicking the toggle
-										// 	return;
-										// } else if (index === 1) {
-										// 	// Toggle the switch for Hide quantity option
-										// 	const toggleSwitch = item.querySelector(".toggle-switch");
-										// 	const toggleCircle = item.querySelector(
-										// 		".toggle-circle",
-										// 	) as HTMLElement;
-
-										// 	if (toggleSwitch) {
-										// 		toggleSwitch.classList.toggle("active");
-										// 		const isActive =
-										// 			toggleSwitch.classList.contains("active");
-
-										// 		if (isActive) {
-										// 			toggleSwitch.setAttribute(
-										// 				"style",
-										// 				"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
-										// 			);
-										// 			toggleCircle.style.left = "20px";
-										// 		} else {
-										// 			toggleSwitch.setAttribute(
-										// 				"style",
-										// 				"position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;",
-										// 			);
-										// 			toggleCircle.style.left = "2px";
-										// 		}
-
-										// 		// Toggle the quantity column visibility
-										// 		toggleColumnVisibility(editor, "quantity", isActive);
-										// 	}
-
-										// 	// Don't close the dropdown when clicking the toggle
-										// 	return;
-										// } else if (index === 2) {
-										// 	// Toggle the switch for Hide discount option
-										// 	const toggleSwitch = item.querySelector(".toggle-switch");
-										// 	const toggleCircle = item.querySelector(
-										// 		".toggle-circle",
-										// 	) as HTMLElement;
-
-										// 	if (toggleSwitch) {
-										// 		toggleSwitch.classList.toggle("active");
-										// 		const isActive =
-										// 			toggleSwitch.classList.contains("active");
-
-										// 		if (isActive) {
-										// 			toggleSwitch.setAttribute(
-										// 				"style",
-										// 				"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
-										// 			);
-										// 			toggleCircle.style.left = "20px";
-										// 		} else {
-										// 			toggleSwitch.setAttribute(
-										// 				"style",
-										// 				"position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;",
-										// 			);
-										// 			toggleCircle.style.left = "2px";
-										// 		}
-
-										// 		// Toggle the discount column visibility
-										// 		toggleColumnVisibility(editor, "discount", isActive);
-										// 	}
-
-										// 	// Don't close the dropdown when clicking the toggle
-										// 	return;
-										// } else if (index === 3) {
-										// 	// Toggle the switch for Hide amount option
-										// 	const toggleSwitch = item.querySelector(".toggle-switch");
-										// 	const toggleCircle = item.querySelector(
-										// 		".toggle-circle",
-										// 	) as HTMLElement;
-
-										// 	if (toggleSwitch) {
-										// 		toggleSwitch.classList.toggle("active");
-										// 		const isActive =
-										// 			toggleSwitch.classList.contains("active");
-
-										// 		if (isActive) {
-										// 			toggleSwitch.setAttribute(
-										// 				"style",
-										// 				"position: relative; width: 36px; height: 18px; background: #1890ff; border-radius: 10px; border: 1px solid #1890ff; cursor: pointer;",
-										// 			);
-										// 			toggleCircle.style.left = "20px";
-										// 		} else {
-										// 			toggleSwitch.setAttribute(
-										// 				"style",
-										// 				"position: relative; width: 36px; height: 18px; background: #e9e9e9; border-radius: 10px; border: 1px solid #d9d9d9; cursor: pointer;",
-										// 			);
-										// 			toggleCircle.style.left = "2px";
-										// 		}
-
-										// 		// Toggle the amount column visibility
-										// 		toggleColumnVisibility(editor, "amount", isActive);
-										// 	}
-
-										// 	// Don't close the dropdown when clicking the toggle
-										// 	return;
-										// } else {
-										// 	dropdown.parentNode?.removeChild(dropdown);
-										// }
 										type ColumnType =
 											| "price"
 											| "quantity"

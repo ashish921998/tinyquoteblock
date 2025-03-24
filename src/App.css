@@ -51,3 +51,55 @@ h1 {
 	margin-bottom: 2rem;
 	color: #333;
 }
+
+/* Read-only mode styles */
+.readonly-mode {
+	position: relative;
+}
+
+.readonly-mode::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: #f44336;
+	z-index: 1000;
+}
+
+.readonly-mode .tox-edit-area__iframe {
+	background-color: #f8f9fa !important;
+}
+
+.readonly-mode .product-checkbox {
+	cursor: pointer !important;
+	opacity: 1 !important;
+	pointer-events: auto !important;
+}
+
+.readonly-mode .product-checkbox:hover {
+	background-color: rgba(33, 150, 243, 0.1);
+}
+
+/* Add a subtle indicator that other elements are not editable */
+.readonly-mode .quote-row:not(.empty-row) > div:not(:first-child),
+.readonly-mode .quote-title-editable,
+.readonly-mode .quote-description-editable {
+	cursor: not-allowed !important;
+}
+
+.readonly-mode .quote-row:not(.empty-row) > div:not(:first-child):hover::after {
+	content: "Read-only";
+	position: absolute;
+	background: rgba(0, 0, 0, 0.8);
+	color: white;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	top: -24px;
+	left: 50%;
+	transform: translateX(-50%);
+	white-space: nowrap;
+	z-index: 1000;
+}
