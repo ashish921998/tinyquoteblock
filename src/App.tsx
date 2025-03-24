@@ -2616,13 +2616,6 @@ function App() {
 						</div>
 					</div>
 				</div>
-				
-				<div style="margin-top: 15px;">
-					<div style="display: block; margin-bottom: 5px; font-weight: 500;">Signature</div>
-					<div class="signature-area" style="min-height: 80px; border: 1px dashed #ccc; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999; font-style: italic;" contenteditable="true">
-						Click to sign...
-					</div>
-				</div>
 			</div>
 		`;
 
@@ -3456,10 +3449,13 @@ function App() {
 						// Prevent pasting quote tables
 						editor.on("paste", (e) => {
 							const content = e.clipboardData?.getData("text/html") || "";
-							if (content.includes('class="quote-block"')) {
+							if (
+								content.includes('class="quote-block"') ||
+								content.includes('class="signature-block"')
+							) {
 								e.preventDefault();
 								editor.notificationManager.open({
-									text: "Quote tables can only be added using the toolbar button",
+									text: "Quote tables and signature blocks can only be added using the toolbar buttons",
 									type: "warning",
 									timeout: 3000,
 								});
