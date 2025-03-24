@@ -2728,50 +2728,61 @@ function App() {
 		const css = `
 			@media print {
 				@page {
-					margin: 2cm;
+					margin: 10px;
+					margin-top: 60px;
+					margin-bottom: 60px;
 				}
 				
 				body::before {
 					content: "";
 					display: block;
-					height: 1cm;
-					margin-bottom: 1cm;
+					height: 28px;
+					margin-bottom: 10px;
 				}
 				
 				body::after {
 					content: "";
 					display: block;
-					height: 1cm;
-					margin-top: 1cm;
+					height: 28px;
+					margin-top: 10px;
 				}
 				
 				.mce-print-header {
 					position: fixed;
-					top: 0;
+					top: 24px;
 					left: 0;
 					right: 0;
 					height: auto;
-					padding: 0.5cm;
+					padding: 8px 0;
 					text-align: center;
 					border-bottom: 1px solid #ddd;
 					background-color: white;
+					z-index: 9999;
 				}
 				
 				.mce-print-footer {
 					position: fixed;
-					bottom: 0;
+					bottom: 24px;
 					left: 0;
 					right: 0;
 					height: auto;
-					padding: 0.5cm;
+					padding: 8px 0;
 					text-align: center;
 					border-top: 1px solid #ddd;
 					background-color: white;
+					z-index: 9999;
 				}
 				
 				/* Hide the configuration block when printing */
 				.print-header-footer-config {
 					display: none !important;
+				}
+				
+				/* Ensure quote tables don't interfere with headers and footers */
+				.quote-block {
+					page-break-inside: avoid;
+					margin-top: 40px !important;
+					margin-bottom: 40px !important;
 				}
 			}
 		`;
@@ -2792,6 +2803,18 @@ function App() {
 					const footerContent = document.body.getAttribute('data-print-footer');
 					
 					if (headerContent || footerContent) {
+						// Fix for quote tables: ensure they don't overlap with header/footer
+						const quoteTables = document.querySelectorAll('.quote-block');
+						if (quoteTables.length > 0) {
+							// Add temporary print margins to quote tables
+							quoteTables.forEach(table => {
+								table.setAttribute('data-original-style', table.getAttribute('style') || '');
+								table.style.marginTop = '40px';
+								table.style.marginBottom = '40px';
+								table.style.pageBreakInside = 'avoid';
+							});
+						}
+						
 						// Create header element if there's content
 						if (headerContent) {
 							const headerElement = document.createElement('div');
@@ -2814,6 +2837,40 @@ function App() {
 						
 						// Call the original print function
 						originalPrint.call(window);
+						
+						// Restore original styles to quote tables
+						if (quoteTables.length > 0) {
+							quoteTables.forEach(table => {
+								const originalStyle = table.getAttribute('data-original-style');
+								if (originalStyle) {
+									table.setAttribute('style', originalStyle);
+								}
+								table.removeAttribute('data-original-style');
+							});
+						}
+						
+						// Restore original styles to quote tables
+						if (quoteTables.length > 0) {
+							quoteTables.forEach(table => {
+								const originalStyle = table.getAttribute('data-original-style');
+								if (originalStyle) {
+									table.setAttribute('style', originalStyle);
+								}
+								table.removeAttribute('data-original-style');
+							});
+						}
+						
+						// Restore original style to first element
+						const firstElement = document.querySelector('.mce-content-body > *:first-child');
+						if (firstElement) {
+							const originalStyle = firstElement.getAttribute('data-original-style');
+							if (originalStyle) {
+								firstElement.setAttribute('style', originalStyle);
+							} else {
+								firstElement.removeAttribute('style');
+							}
+							firstElement.removeAttribute('data-original-style');
+						}
 						
 						// Remove the header and footer elements after printing
 						const headerElement = document.querySelector('.mce-print-header');
@@ -3395,6 +3452,20 @@ function App() {
 						"removeformat | help | insertquotetable insertsignatureblock printheaderfooter savedblocks",
 					setup: (editor) => {
 						setCurrentEditor(editor);
+
+						// Prevent pasting quote tables
+						editor.on("paste", (e) => {
+							const content = e.clipboardData?.getData("text/html") || "";
+							if (content.includes('class="quote-block"')) {
+								e.preventDefault();
+								editor.notificationManager.open({
+									text: "Quote tables can only be added using the toolbar button",
+									type: "warning",
+									timeout: 3000,
+								});
+								return false;
+							}
+						});
 
 						editor.ui.registry.addButton("insertquotetable", {
 							text: "Add Quote Table",
